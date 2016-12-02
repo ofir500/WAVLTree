@@ -1,432 +1,429 @@
 import java.util.Arrays;
 
 /**
- *
  * WAVLTree
- *
+ * <p>
  * An implementation of a WAVL Tree with distinct integer keys and info
- *
  */
 
 public class WAVLTree {
 
-	private WAVLNode root;
-	private int size;
+    enum NodeType {
+        LEAF, RIGHT_CHILD_ONLY, LEFT_CHILD_ONLY, TWO_CHILDREN;
 
-	public WAVLTree() {
-		this.root = null;
-		this.size = 0;
-	}
+        static NodeType of(WAVLNode node) {
+            if (node.leftChild != null && node.rightChild != null) {
+                return TWO_CHILDREN;
+            } else if (node.leftChild != null) {
+                return LEFT_CHILD_ONLY;
+            } else if (node.rightChild != null) {
+                return RIGHT_CHILD_ONLY;
+            } else {
+                return LEAF;
+            }
+        }
+    }
 
-	/**
-	 * public boolean empty()
-	 *
-	 * returns true if and only if the tree is empty
-	 *
-	 */
-	public boolean empty() {
-		return size == 0;
-	}
+    private WAVLNode root;
+    private int size;
 
-	/**
-	 * public String search(int k)
-	 *
-	 * returns the info of an item with key k if it exists in the tree
-	 * otherwise, returns null
-	 */
-	public String search(int k) {
-		return search(k, this.root);
-	}
+    public WAVLTree() {
+        this.root = null;
+        this.size = 0;
+    }
 
-	public String search(int k, WAVLNode node) {
-		if (node == null) {
-			return null;
-		} else if (node.key == k) {
-			return node.getInfo();
-		} else if (k > node.key) {
-			return search(k, node.getRightChild());
-		} else {
-			return search(k, node.leftChild);
-		}
-	}
+    /**
+     * returns true if and only if the tree is empty
+     */
+    public boolean empty() {
+        return size == 0;
+    }
 
-	/**
-	 * public int insert(int k, String i)
-	 *
-	 * inserts an item with key k and info i to the WAVL tree. the tree must
-	 * remain valid (keep its invariants). returns the number of rebalancing
-	 * operations, or 0 if no rebalancing operations were necessary. returns -1
-	 * if an item with key k already exists in the tree.
-	 */
-	public int insert(int k, String i) {
-		WAVLNode newNode = new WAVLNode(k, i);
-		if (this.root == null) { // if tree is empty, add as root
-			this.root = newNode;
-			this.size++;
-			return 0;
-		}
+    /**
+     * returns the info of an item with key k if it exists in the tree
+     * otherwise, returns null
+     */
+    public String search(int k) {
+        return search(k, this.root);
+    }
 
-		WAVLNode currentNode = this.root;
-		while (true) {
-			if (currentNode.key == k) {
-				currentNode.setInfo(i);
-				return 0;
-			} else if (k > currentNode.getKey()) {
-				if (currentNode.rightChild == null) {
-					currentNode.rightChild = newNode;
-					this.size++;
-					return 0;
-				} else {
-					currentNode = currentNode.rightChild;
-				}
-			} else {
-				if (currentNode.leftChild == null) {
-					currentNode.leftChild = newNode;
-					this.size++;
-					return 0;
-				} else {
-					currentNode = currentNode.leftChild;
-				}
-			}
-		}
-	}
+    /**
+     * returns the info of an item with key k if it exists in the sub-tree
+     * otherwise, returns null
+     * @param k  - key of node in the tree
+     * @param node - root of a sub-tree
+     */
+    private String search(int k, WAVLNode node) {
+        if (node == null) {
+            return null;
+        } else if (node.key == k) {
+            return node.getInfo();
+        } else if (k > node.key) {
+            return search(k, node.getRightChild());
+        } else {
+            return search(k, node.leftChild);
+        }
+    }
 
-	/**
-	 * public int delete(int k)
-	 *
-	 * deletes an item with key k from the binary tree, if it is there; the tree
-	 * must remain valid (keep its invariants). returns the number of
-	 * rebalancing operations, or 0 if no rebalancing operations were needed.
-	 * returns -1 if an item with key k was not found in the tree.
-	 */
-	public int delete(int k) {
-		if (this.root == null) {
-			return -1;
-		}
+    /**
+     * inserts an item with key k and info i to the WAVL tree. the tree must
+     * remain valid (keep its invariants). returns the number of rebalancing
+     * operations, or 0 if no rebalancing operations were necessary. returns -1
+     * if an item with key k already exists in the tree.
+     */
+    public int insert(int k, String i) {
+        WAVLNode newNode = new WAVLNode(k, i);
+        if (this.root == null) { // if tree is empty, add as root
+            this.root = newNode;
+            this.size++;
+            return 0;
+        }
 
-		WAVLNode parent = null;
-		WAVLNode child = this.root;
+        WAVLNode currentNode = this.root;
+        while (true) {
+            if (k == currentNode.key) { // case 1: node with key k already exists, update its info
+                currentNode.setInfo(i);
+                return -1;
 
-		while (true) {
-			if (child == null) {
-				return -1;
-			} else if (child.key == k) {
-				return delete(parent, child);
-			} else {
-				parent = child;
-				if (k < child.getKey()) {
-					child = child.getLeftChild();
-				} else {
-					child = child.getRightChild();
-				}
-			}
-		}
-	}
+            } else if (k > currentNode.key) { // node should be placed in the right sub-tree
+                if (currentNode.rightChild == null) { // we found where to place the node
+                    currentNode.rightChild = newNode;
+                    this.size++;
+                    return 0;
+                } else {
+                    currentNode = currentNode.rightChild;
+                }
 
-	public int delete(WAVLNode parent, WAVLNode child) {
-		if (isLeaf(child)) {
-			if (parent.getLeftChild() == child) {
-				parent.setLeftChild(null);
-			} else {
-				parent.setRightChild(null);
-			}
-			size--;
-			return 0;
-		}
+            } else { // node should be placed in the left sub-tree
+                if (currentNode.leftChild == null) { // we found where to place the node
+                    currentNode.leftChild = newNode;
+                    this.size++;
+                    return 0;
+                } else {
+                    currentNode = currentNode.leftChild;
+                }
+            }
+        }
+    }
 
-		int flag = hasOneChild(child);
-		if (flag == 0) { // only left child
-			if (parent.getLeftChild() == child) {
-				parent.setLeftChild(child.getLeftChild());
-			} else {
-				parent.setRightChild(child.getLeftChild());
-			}
-			size--;
-			return 0;
-		} else if (flag == 1) { // only right child
-			if (parent.getLeftChild() == child) {
-				parent.setLeftChild(child.getRightChild());
-			} else {
-				parent.setRightChild(child.getRightChild());
-			}
-			size--;
-			return 0;
-		}
+    /**
+     * deletes an item with key k from the binary tree, if it is there; the tree
+     * must remain valid (keep its invariants). returns the number of
+     * rebalancing operations, or 0 if no rebalancing operations were needed.
+     * returns -1 if an item with key k was not found in the tree.
+     */
+    public int delete(int k) {
+        // we need to find the node to be deleted and its parent
+        WAVLNode parent = null;
+        WAVLNode child = this.root;
+        boolean isLeftChild = false;
 
-		// our child has 2 chlidren, find it's predecessor
-		ParentChildPair pair = minNode(child.rightChild);
-		WAVLNode pred = pair.child;
-		WAVLNode predParent = pair.parent;
-		if (predParent != null) {
-			predParent.setLeftChild(null);
-		}
-		if (parent != null && parent.getLeftChild() == child) {
-			parent.setLeftChild(pred);
-		} else if (parent != null) {
-			parent.setRightChild(pred);
-		} else {
-			this.root = pred;
-		}
-		pred.setLeftChild(child.leftChild);
-		if (predParent != null) {
-			pred.setRightChild(child.rightChild);
-		}
-		size--;
-		return 0;
-	}
+        while (true) {
+            if (child == null) { // case 1: the key is not in the tree
+                return -1;
 
-	private boolean isLeaf(WAVLNode node) {
-		return node.getLeftChild() == null && node.getRightChild() == null;
-	}
+            } else if (child.key == k) { // case 2: we found the node to be deleted
+                return delete(parent, child, isLeftChild);
 
-	/**
-	 * 
-	 * @param node
-	 * @return -1 if leaf or has 2 childs, 0 if has just left child, 1 if has
-	 *         only right child
-	 */
-	private int hasOneChild(WAVLNode node) {
-		if (node.getLeftChild() != null && node.getRightChild() == null) {
-			return 0;
-		} else if (node.getRightChild() != null && node.getLeftChild() == null) {
-			return 1;
-		} else {
-			return -1;
-		}
-	}
+            } else { // case 3: continue the search for the node
+                parent = child;
+                if (k < child.getKey()) {
+                    child = child.getLeftChild();
+                    isLeftChild = true;
+                } else {
+                    child = child.getRightChild();
+                    isLeftChild = false;
+                }
+            }
+        }
+    }
 
-	/**
-	 * public String min()
-	 *
-	 * Returns the iîfo of the item with the smallest key in the tree, or null
-	 * if the tree is empty
-	 */
-	public String min() {
-		return min(this.root);
-	}
+    public int delete(WAVLNode parent, WAVLNode child, boolean isLeftChild) {
+        NodeType type = NodeType.of(child);
+        if (type == NodeType.LEAF) { // case 1: the node to be deleted has no children.
+            deleteLeafNode(parent, isLeftChild);
 
-	private String min(WAVLNode node) {
-		if (node == null) {
-			return null;
-		} else if (node.getLeftChild() == null) {
-			return node.getInfo();
-		} else {
-			return min(node.getLeftChild());
-		}
-	}
+        } else if (type == NodeType.LEFT_CHILD_ONLY) { // case 2.1: the node to be deleted has only a left child
+            deleteNodeWithOneChild(parent, child.leftChild, isLeftChild);
 
-	private ParentChildPair minNode(WAVLNode node) {
-		if (node.getLeftChild() != null && node.getLeftChild().getLeftChild() == null) {
-			return new ParentChildPair(node, node.getLeftChild());
-		} else if (node.getLeftChild() == null) {
-			return new ParentChildPair(null, node);
-		} else {
-			return minNode(node.getLeftChild());
-		}
-	}
+        } else if (type == NodeType.RIGHT_CHILD_ONLY) { // case 2.2: the node to be deleted has only a right child
+            deleteNodeWithOneChild(parent, child.rightChild, isLeftChild);
 
-	/**
-	 * public String max()
-	 *
-	 * Returns the info of the item with the largest key in the tree, or null if
-	 * the tree is empty
-	 */
-	public String max() {
-		return max(this.root);
-	}
+        } else { // case 3: the node to be deleted has 2 children
+            deleteNodeWithTwoChildren(parent, child, isLeftChild);
+        }
 
-	private String max(WAVLNode node) {
-		if (node == null) {
-			return null;
-		} else if (node.getRightChild() == null) {
-			return node.getInfo();
-		} else {
-			return max(node.getRightChild());
-		}
-	}
+        size--;
+        return 0;
+    }
 
-	/**
-	 * public int[] keysToArray()
-	 *
-	 * Returns a sorted array which contains all keys in the tree, or an empty
-	 * array if the tree is empty.
-	 */
-	public int[] keysToArray() {
-		KeysArray res = new KeysArray(this.size);
-		keysToArray(this.root, res);
-		return res.arr;
-	}
+    /**
+     * deletes a node with no children.
+     * @param parentNode - parent of the node to be deleted
+     * @param isLeftChild - should be set to true if the node to be deleted is a left child of its parent
+     */
+    private void deleteLeafNode(WAVLNode parentNode, boolean isLeftChild) {
+        if (parentNode == null) { // deletion of a leaf which is the root
+            this.root = null;
+        } else if (isLeftChild) {
+            parentNode.setLeftChild(null);
+        } else {
+            parentNode.setRightChild(null);
+        }
+    }
 
-	private void keysToArray(WAVLNode node, KeysArray arr) {
-		if (node == null) {
-			return;
-		} else {
-			keysToArray(node.leftChild, arr);
-			arr.add(node.getKey());
-			keysToArray(node.getRightChild(), arr);
-		}
-	}
+    /**
+     * deletes a node that has one child only
+     * @param parent - parent of the node to be deleted
+     * @param childOfChild - the one child of the node to be deleted
+     * @param isLeftChild - should be set to true if the node to be deleted is a left child of its parent
+     */
+    private void deleteNodeWithOneChild(WAVLNode parent, WAVLNode childOfChild, boolean isLeftChild) {
+        if (parent == null) {
+            this.root = childOfChild;
+        } else if (isLeftChild) {
+            parent.setLeftChild(childOfChild);
+        } else {
+            parent.setRightChild(childOfChild);
+        }
+    }
 
-	/**
-	 * public String[] infoToArray()
-	 *
-	 * Returns an array which contains all info in the tree, sorted by their
-	 * respective keys, or an empty array if the tree is empty.
-	 */
-	public String[] infoToArray() {
-		InfosArray res = new InfosArray(this.size);
-		infoToArray(this.root, res);
-		return res.arr;
-	}
+    /**
+     * deletes a node that has two children
+     * @param parent - parent of the node to be deleted
+     * @param child - the node to be deleted
+     * @param isLeftChild - should be set to true if the node to be deleted is a left child of its parent
+     */
+    private void deleteNodeWithTwoChildren(WAVLNode parent, WAVLNode child, boolean isLeftChild) {
+        // find the successor of the node to be deleted
+        ParentChildPair pair = minNode(child.rightChild);
+        WAVLNode successor = pair.child;
+        WAVLNode successorParent = pair.parent;
 
-	private void infoToArray(WAVLNode node, InfosArray arr) {
-		if (node == null) {
-			return;
-		} else {
-			infoToArray(node.getLeftChild(), arr);
-			arr.add(node.getInfo());
-			infoToArray(node.getRightChild(), arr);
-		}
-	}
+        //first, we disconnect our successor from its parent
+        if (successorParent != null) {
+            successorParent.setLeftChild(successor.rightChild);
+        }
 
-	/**
-	 * public int size()
-	 *
-	 * Returns the number of nodes in the tree.
-	 *
-	 * precondition: none postcondition: none
-	 */
-	public int size() {
-		return this.size;
-	}
+        //now we assign our successor a new parent
+        if (parent == null) { // deletion of root
+            this.root = successor;
+        } else if (isLeftChild) {
+            parent.setLeftChild(successor);
+        } else  {
+            parent.setRightChild(successor);
+        }
 
-	private int getRank(WAVLNode node) {
-		if (node == null) {
-			return -1;
-		}
-		return node.getRank();
-	}
+        // now we assign our successor its new children - those of the node we want to delete
+        successor.setLeftChild(child.leftChild);
+        if (successorParent != null) { // to prevent a node from being its own child
+            successor.setRightChild(child.rightChild);
+        }
+    }
 
-	/**
-	 * 
-	 */
-	public static class WAVLNode {
-		private Integer key;
-		private String info;
-		private int rank;
+    /**
+     * Returns the info of the item with the smallest key in the tree, or null
+     * if the tree is empty
+     */
+    public String min() {
+        if (this.root == null) {
+            return null;
+        }
+        WAVLNode minNode = minNode(this.root).child;
+        return minNode.info;
+    }
 
-		private WAVLNode rightChild;
-		private WAVLNode leftChild;
+    /**
+     * finds the minimal node in a sub-tree, and its parent
+     *
+     * @param node - root of sub-tree
+     * @return ParentChildPair - child is the minimal node of the sub-tree
+     * @throws NullPointerException - if node is null
+     */
+    private ParentChildPair minNode(WAVLNode node) {
+        if (node.getLeftChild() != null && node.getLeftChild().getLeftChild() == null) {
+            return new ParentChildPair(node, node.getLeftChild());
+        } else if (node.getLeftChild() == null) {
+            return new ParentChildPair(null, node);
+        } else {
+            return minNode(node.getLeftChild());
+        }
+    }
 
-		public WAVLNode(Integer key, String info) {
-			this.key = key;
-			this.info = info;
-			this.rank = 0;
-			this.rightChild = null;
-			this.leftChild = null;
-		}
+    /**
+     * Returns the info of the item with the largest key in the tree, or null if
+     * the tree is empty
+     */
+    public String max() {
+        return max(this.root);
+    }
 
-		public Integer getKey() {
-			return key;
-		}
+    /**
+     * Returns the info of the item with the largest key in a sub-tree, or null if
+     * the sub-tree is empty
+     */
+    private String max(WAVLNode node) {
+        if (node == null) {
+            return null;
+        } else if (node.getRightChild() == null) {
+            return node.getInfo();
+        } else {
+            return max(node.getRightChild());
+        }
+    }
 
-		public void setKey(Integer key) {
-			this.key = key;
-		}
+    /**
+     * Returns a sorted array which contains all keys in the tree, or an empty
+     * array if the tree is empty.
+     */
+    public int[] keysToArray() {
+        int[] arr = new int[this.size];
+        keysToArray(this.root, arr, 0);
+        return arr;
+    }
 
-		public String getInfo() {
-			return info;
-		}
+    private int keysToArray(WAVLNode node, int[] arr, int i) {
+        if (node == null) {
+            return i;
+        } else {
+            i = keysToArray(node.leftChild, arr, i);
+            arr[i] = node.key;
+            i = keysToArray(node.getRightChild(), arr, i+1);
+            return i;
+        }
+    }
 
-		public void setInfo(String info) {
-			this.info = info;
-		}
+    /**
+     * Returns an array which contains all info in the tree, sorted by their
+     * respective keys, or an empty array if the tree is empty.
+     */
+    public String[] infoToArray() {
+        String[] arr = new String[this.size];
+        infoToArray(this.root, arr, 0);
+        return arr;
+    }
 
-		private int getRank() {
-			return rank;
-		}
+    private int infoToArray(WAVLNode node, String[] arr, int i) {
+        if (node == null) {
+            return i;
+        } else {
+            i = infoToArray(node.getLeftChild(), arr, i);
+            arr[i] = node.info;
+            i= infoToArray(node.getRightChild(), arr, i+1);
+            return i;
+        }
+    }
 
-		private void setRank(int rank) {
-			this.rank = rank;
-		}
+    /**
+     * Returns the number of nodes in the tree.
+     */
+    public int size() {
+        return this.size;
+    }
 
-		public WAVLNode getRightChild() {
-			return rightChild;
-		}
+    private int getRank(WAVLNode node) {
+        if (node == null) { // external leaf
+            return -1;
+        }
+        return node.getRank();
+    }
 
-		public void setRightChild(WAVLNode rightChild) {
-			this.rightChild = rightChild;
-		}
+    /**
+     *
+     */
+    private static class WAVLNode {
+        private Integer key;
+        private String info;
+        private int rank;
 
-		public WAVLNode getLeftChild() {
-			return leftChild;
-		}
+        private WAVLNode rightChild;
+        private WAVLNode leftChild;
 
-		public void setLeftChild(WAVLNode leftChild) {
-			this.leftChild = leftChild;
-		}
-	}
+        public WAVLNode(Integer key, String info) {
+            this.key = key;
+            this.info = info;
+            this.rank = 0;
+            this.rightChild = null;
+            this.leftChild = null;
+        }
 
-	private static class KeysArray {
-		int[] arr;
-		int i;
+        public Integer getKey() {
+            return key;
+        }
 
-		private KeysArray(int size) {
-			this.arr = new int[size];
-			this.i = 0;
-		}
+        public void setKey(Integer key) {
+            this.key = key;
+        }
 
-		private void add(int k) {
-			arr[i] = k;
-			i += 1;
-		}
-	}
+        public String getInfo() {
+            return info;
+        }
 
-	private static class InfosArray {
-		String[] arr;
-		int i;
+        public void setInfo(String info) {
+            this.info = info;
+        }
 
-		InfosArray(int size) {
-			this.arr = new String[size];
-			this.i = 0;
-		}
+        private int getRank() {
+            return rank;
+        }
 
-		void add(String info) {
-			arr[i] = info;
-			i += 1;
-		}
-	}
+        private void setRank(int rank) {
+            this.rank = rank;
+        }
 
-	static class ParentChildPair {
-		WAVLNode parent;
-		WAVLNode child;
+        public WAVLNode getRightChild() {
+            return rightChild;
+        }
 
-		public ParentChildPair(WAVLNode parent, WAVLNode child) {
-			this.parent = parent;
-			this.child = child;
-		}
-	}
+        public void setRightChild(WAVLNode rightChild) {
+            this.rightChild = rightChild;
+        }
 
-	public static void main(String[] args) {
+        public WAVLNode getLeftChild() {
+            return leftChild;
+        }
 
-		WAVLTree tree = new WAVLTree();
+        public void setLeftChild(WAVLNode leftChild) {
+            this.leftChild = leftChild;
+        }
+    }
 
-		tree.insert(5, "Bla5");
-		tree.insert(7, "Bla7");
-		tree.insert(6, "Bla6");
-		tree.insert(2, "Bla2");
-		tree.insert(2, "Bla22");
-		tree.insert(1, "Bla1");
-		tree.insert(8, "Bla8");
-		System.out.println("takua3");
-		System.out.printf("size: %d%n", tree.size());
-		System.out.printf("max: %s%n", tree.max());
-		System.out.printf("min: %s%n", tree.min());
-		System.out.println(Arrays.toString(tree.keysToArray()));
-		System.out.println(Arrays.toString(tree.infoToArray()));
-		System.out.printf("info of 2: %s%n", tree.search(2));
+    private static class ParentChildPair {
+        WAVLNode parent;
+        WAVLNode child;
 
-		tree.delete(1);
-		System.out.println(Arrays.toString(tree.keysToArray()));
-	}
+        public ParentChildPair(WAVLNode parent, WAVLNode child) {
+            this.parent = parent;
+            this.child = child;
+        }
+    }
+
+    public static void main(String[] args) {
+
+        WAVLTree tree = new WAVLTree();
+
+        tree.insert(5, "Bla5");
+        tree.insert(7, "Bla7");
+        tree.insert(6, "Bla6");
+        tree.insert(2, "Bla2");
+        tree.insert(2, "Bla22");
+        tree.insert(1, "Bla1");
+        tree.insert(8, "Bla8");
+
+
+        System.out.printf("size: %d%n", tree.size());
+        System.out.printf("max: %s%n", tree.max());
+        System.out.printf("min: %s%n", tree.min());
+        System.out.println(Arrays.toString(tree.keysToArray()));
+        System.out.println(Arrays.toString(tree.infoToArray()));
+        System.out.printf("info of 2: %s%n", tree.search(2));
+
+        tree.delete(5);
+        /*tree.delete(6);
+        tree.delete(7);
+        tree.delete(8);
+        tree.delete(2);
+        tree.delete(1);*/
+        System.out.println(Arrays.toString(tree.keysToArray()));
+    }
 }
