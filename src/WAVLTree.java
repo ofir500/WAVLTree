@@ -54,14 +54,16 @@ public class WAVLTree {
      * @param node - root of a sub-tree
      */
     private String search(int k, WAVLNode node) {
-        if (node == null) {
-            return null;
-        } else if (node.key == k) {
-            return node.info;
-        } else if (k > node.key) {
-            return search(k, node.rightChild);
-        } else {
-            return search(k, node.leftChild);
+        while (true) {
+            if (node == null) {
+                return null;
+            } else if (node.key == k) {
+                return node.info;
+            } else if (k > node.key) {
+                node = node.rightChild;
+            } else {
+                node = node.leftChild;
+            }
         }
     }
 
@@ -344,9 +346,6 @@ public class WAVLTree {
         return node.rank;
     }
 
-    /**
-     *
-     */
     private static class WAVLNode {
         private Integer key;
         private String info;
@@ -355,32 +354,12 @@ public class WAVLTree {
         private WAVLNode rightChild;
         private WAVLNode leftChild;
 
-        public WAVLNode(Integer key, String info) {
+        private WAVLNode(Integer key, String info) {
             this.key = key;
             this.info = info;
             this.rank = 0;
             this.rightChild = null;
             this.leftChild = null;
-        }
-
-        public Integer getKey() {
-            return key;
-        }
-
-        public String getInfo() {
-            return info;
-        }
-
-        private int getRank() {
-            return rank;
-        }
-
-        public WAVLNode getRightChild() {
-            return rightChild;
-        }
-
-        public WAVLNode getLeftChild() {
-            return leftChild;
         }
 
     }
@@ -406,21 +385,23 @@ public class WAVLTree {
         tree.insert(2, "Bla22");
         tree.insert(1, "Bla1");
         tree.insert(8, "Bla8");
-
-
+        
         System.out.printf("size: %d%n", tree.size());
         System.out.printf("max: %s%n", tree.max());
         System.out.printf("min: %s%n", tree.min());
         System.out.println(Arrays.toString(tree.keysToArray()));
         System.out.println(Arrays.toString(tree.infoToArray()));
         System.out.printf("info of 2: %s%n", tree.search(2));
+        System.out.printf("info of 1: %s%n", tree.search(1));
+        System.out.printf("info of 8: %s%n", tree.search(8));
+        System.out.printf("info of 10: %s%n", tree.search(10));
 
         tree.delete(5);
-        /*tree.delete(6);
+        tree.delete(6);
         tree.delete(7);
-        tree.delete(8);
+        //tree.delete(8);
         tree.delete(2);
-        tree.delete(1);*/
+        //tree.delete(1);
         System.out.println(Arrays.toString(tree.keysToArray()));
     }
 }
