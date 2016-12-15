@@ -1,4 +1,7 @@
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * WAVLTree
@@ -25,7 +28,7 @@ public class WAVLTree {
 	}
 
 	enum RankDiff {
-		D0_1, D0_2, D1_0, D1_1, D1_2, D2_0, D2_1, D2_2;
+		D0_1, D0_2, D1_0, D1_1, D1_2, D1_3, D2_0, D2_1, D2_2, D2_3, D3_1, D3_2;
 
 		static RankDiff of(WAVLNode node) {
 			int diffLeft = getRank(node) - getRank(node.leftChild);
@@ -40,17 +43,25 @@ public class WAVLTree {
 					return D1_0;
 				} else if (diffRight == 1) {
 					return D1_1;
+				} else if (diffRight == 2) {
+					return D1_2;
 				}
-				return D1_2;
+				return D1_3;
 			} else if (diffLeft == 2) {
 				if (diffRight == 0) {
 					return D2_0;
 				} else if (diffRight == 1) {
 					return D2_1;
+				} else if (diffRight == 2) {
+					return D2_2;
 				}
-				return D2_2;
+				return D2_3;
+			} else { // diffLeft == 3
+				if (diffRight == 1) {
+					return D3_1;
+				}
+				return D3_2;
 			}
-			return null; // should not get here
 		}
 	}
 
@@ -157,10 +168,10 @@ public class WAVLTree {
 		if (node == null) {
 			return 0;
 		}
-	
+
 		RankDiff prev = RankDiff.D1_1;
 		int counter = 0;
-	
+
 		while (node != null) {
 			RankDiff diff = RankDiff.of(node);
 			if (diff == RankDiff.D0_1) {
@@ -173,24 +184,24 @@ public class WAVLTree {
 				prev = RankDiff.D2_1;
 			} else if (diff == RankDiff.D0_2) {
 				if (prev == RankDiff.D1_2) {
-					rotateRight(node);
+					rotateRight(node, false);
 				} else {
-					doubleRotateLeftRight(node);
+					doubleRotateLeftRight(node, false);
 				}
 				counter++;
 				return counter;
 			} else if (diff == RankDiff.D2_0) {
 				if (prev == RankDiff.D2_1) {
-					rotateLeft(node);
+					rotateLeft(node, false);
 				} else {
-					doubleRotateRightLeft(node);
+					doubleRotateRightLeft(node, false);
 				}
 				counter++;
 				return counter;
 			} else if (diff == RankDiff.D1_1) {
 				return counter;
 			}
-	
+
 			node = node.parent;
 		}
 		return counter;
@@ -465,7 +476,7 @@ public class WAVLTree {
 		return node.rank;
 	}
 
-	private void rotateRight(WAVLNode node) {
+	private void rotateRight(WAVLNode node, boolean afterDeletion) {
 		WAVLNode parent = node.parent;
 		boolean isLeftChild = parent != null && node.parent.leftChild == node;
 
@@ -484,9 +495,15 @@ public class WAVLTree {
 		}
 
 		node.rank--;
+		if (afterDeletion) {
+			k.rank++;
+			if (k.rightChild != null && NodeType.of(k.rightChild) == NodeType.LEAF) {
+				k.rightChild.rank--;
+			}
+		}
 	}
 
-	private void rotateLeft(WAVLNode node) {
+	private void rotateLeft(WAVLNode node, boolean afterDeletion) {
 		WAVLNode parent = node.parent;
 		boolean isLeftChild = parent != null && node.parent.leftChild == node;
 
@@ -505,21 +522,37 @@ public class WAVLTree {
 		}
 
 		node.rank--;
+		if (afterDeletion) {
+			k.rank++;
+			if (k.leftChild != null && NodeType.of(k.leftChild) == NodeType.LEAF) {
+				k.leftChild.rank--;
+			}
+		}
 	}
 
-	private void doubleRotateLeftRight(WAVLNode node) {
-		rotateLeft(node.leftChild);
-		rotateRight(node);
-		node.parent.rank++;
+	private void doubleRotateLeftRight(WAVLNode node, boolean afterDeletion) {
+		rotateLeft(node.leftChild, afterDeletion);
+		rotateRight(node, afterDeletion);
+
+		if (afterDeletion) {
+			node.rank--;
+		} else {
+			node.parent.rank++;
+		}
 	}
 
-	private void doubleRotateRightLeft(WAVLNode node) {
-		rotateRight(node.rightChild);
-		rotateLeft(node);
-		node.parent.rank++;
+	private void doubleRotateRightLeft(WAVLNode node, boolean afterDeletion) {
+		rotateRight(node.rightChild, afterDeletion);
+		rotateLeft(node, afterDeletion);
+
+		if (afterDeletion) {
+			node.rank--;
+		} else {
+			node.parent.rank++;
+		}
 	}
 
-	private static class WAVLNode {
+	public class WAVLNode {
 		private Integer key;
 		private String info;
 		private int rank;
@@ -567,17 +600,19 @@ public class WAVLTree {
 
 		WAVLTree tree = new WAVLTree();
 
-		tree.insert(5, "Bla5");
-		System.out.println("i5");
-		tree.insert(7, "Bla7");
-		System.out.println("i7");
-		tree.insert(6, "Bla6");
-		System.out.println("i6");
-		tree.insert(2, "Bla2");
-		System.out.println("i2");
-		tree.insert(2, "Bla22");
-		tree.insert(1, "Bla1");
-		tree.insert(8, "Bla8");
+		/*
+		 * tree.insert(5, "Bla5"); System.out.println("i5"); tree.insert(7,
+		 * "Bla7"); System.out.println("i7"); tree.insert(6, "Bla6");
+		 * System.out.println("i6"); tree.insert(2, "Bla2");
+		 * System.out.println("i2"); tree.insert(2, "Bla22"); tree.insert(1,
+		 * "Bla1"); tree.insert(8, "Bla8");
+		 */
+		for (int i = 1; i <= 10; i++) {
+			tree.insert(i, String.valueOf(i));
+		}
+
+		TreePrint tp = tree.new TreePrint();
+		tp.printNode(tree.root);
 
 		System.out.printf("size: %d%n", tree.size());
 		System.out.printf("max: %s%n", tree.max());
@@ -596,5 +631,93 @@ public class WAVLTree {
 		tree.delete(2);
 		// tree.delete(1);
 		System.out.println(Arrays.toString(tree.keysToArray()));
+	}
+
+	class TreePrint {
+
+		public <T extends Comparable<?>> void printNode(WAVLTree.WAVLNode root) {
+			int maxLevel = maxLevel(root);
+
+			printNodeInternal(Collections.singletonList(root), 1, maxLevel);
+		}
+
+		private <T extends Comparable<?>> void printNodeInternal(List<WAVLTree.WAVLNode> list, int level,
+				int maxLevel) {
+			if (list.isEmpty() || isAllElementsNull(list))
+				return;
+
+			int floor = maxLevel - level;
+			int endgeLines = (int) Math.pow(2, (Math.max(floor - 1, 0)));
+			int firstSpaces = (int) Math.pow(2, (floor)) - 1;
+			int betweenSpaces = (int) Math.pow(2, (floor + 1)) - 1;
+
+			printWhitespaces(firstSpaces);
+
+			List<WAVLTree.WAVLNode> newNodes = new ArrayList<WAVLTree.WAVLNode>();
+			for (WAVLTree.WAVLNode node : list) {
+				if (node != null) {
+					System.out.print(node.key);
+					newNodes.add(node.leftChild);
+					newNodes.add(node.rightChild);
+				} else {
+					newNodes.add(null);
+					newNodes.add(null);
+					System.out.print(" ");
+				}
+
+				printWhitespaces(betweenSpaces);
+			}
+			System.out.println("");
+
+			for (int i = 1; i <= endgeLines; i++) {
+				for (int j = 0; j < list.size(); j++) {
+					printWhitespaces(firstSpaces - i);
+					if (list.get(j) == null) {
+						printWhitespaces(endgeLines + endgeLines + i + 1);
+						continue;
+					}
+
+					if (list.get(j).leftChild != null)
+						System.out.print("/");
+					else
+						printWhitespaces(1);
+
+					printWhitespaces(i + i - 1);
+
+					if (list.get(j).rightChild != null)
+						System.out.print("\\");
+					else
+						printWhitespaces(1);
+
+					printWhitespaces(endgeLines + endgeLines - i);
+				}
+
+				System.out.println("");
+			}
+
+			printNodeInternal(newNodes, level + 1, maxLevel);
+		}
+
+		private void printWhitespaces(int count) {
+			for (int i = 0; i < count; i++)
+				System.out.print(" ");
+		}
+
+		private <T extends Comparable<?>> int maxLevel(WAVLTree.WAVLNode root) {
+			if (root == null)
+				return 0;
+
+			return Math.max(maxLevel(root.leftChild), maxLevel(root.rightChild)) + 1;
+		}
+
+		private <T> boolean isAllElementsNull(List<T> list) {
+			for (Object object : list) {
+				if (object != null)
+					return false;
+			}
+
+			return true;
+		}
+
 	}
 }
