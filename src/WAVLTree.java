@@ -24,12 +24,49 @@ public class WAVLTree {
 		}
 	}
 
+	enum RankDiff {
+		D0_1, D0_2, D1_0, D1_1, D1_2, D2_0, D2_1, D2_2;
+
+		static RankDiff of(WAVLNode node) {
+			int diffLeft = getRank(node) - getRank(node.leftChild);
+			int diffRight = getRank(node) - getRank(node.rightChild);
+
+			if (diffLeft == 0) {
+				if (diffRight == 1)
+					return D0_1;
+				return D0_2;
+			} else if (diffLeft == 1) {
+				if (diffRight == 0) {
+					return D1_0;
+				} else if (diffRight == 1) {
+					return D1_1;
+				}
+				return D1_2;
+			} else if (diffLeft == 2) {
+				if (diffRight == 0) {
+					return D2_0;
+				} else if (diffRight == 1) {
+					return D2_1;
+				}
+				return D2_2;
+			}
+			return null; // should not get here
+		}
+	}
+
 	private WAVLNode root;
 	private int size;
 
 	public WAVLTree() {
 		this.root = null;
 		this.size = 0;
+	}
+
+	private void setRoot(WAVLNode root) {
+		this.root = root;
+		if (this.root != null) {
+			this.root.parent = null;
+		}
 	}
 
 	/**
@@ -79,7 +116,7 @@ public class WAVLTree {
 	public int insert(int k, String i) {
 		WAVLNode newNode = new WAVLNode(k, i);
 		if (this.root == null) { // if tree is empty, add as root
-			this.root = newNode;
+			this.setRoot(newNode);
 			this.size++;
 			return 0;
 		}
@@ -94,9 +131,9 @@ public class WAVLTree {
 												// right sub-tree
 				if (currentNode.rightChild == null) { // we found where to place
 														// the node
-					currentNode.rightChild = newNode;
+					currentNode.setRightChild(newNode);
 					this.size++;
-					return 0;
+					break;
 				} else {
 					currentNode = currentNode.rightChild;
 				}
@@ -104,14 +141,16 @@ public class WAVLTree {
 			} else { // node should be placed in the left sub-tree
 				if (currentNode.leftChild == null) { // we found where to place
 														// the node
-					currentNode.leftChild = newNode;
+					currentNode.setLeftChild(newNode);
 					this.size++;
-					return 0;
+					break;
 				} else {
 					currentNode = currentNode.leftChild;
 				}
 			}
 		}
+
+		return balanceAfterInsert(newNode.parent);
 	}
 
 	/**
@@ -145,6 +184,49 @@ public class WAVLTree {
 				}
 			}
 		}
+	}
+
+	private int balanceAfterInsert(WAVLNode node) {
+		if (node == null) {
+			return 0;
+		}
+
+		RankDiff prev = RankDiff.D1_1;
+		int counter = 0;
+
+		while (node != null) {
+			RankDiff diff = RankDiff.of(node);
+			if (diff == RankDiff.D0_1) {
+				node.rank++;
+				counter++;
+				prev = RankDiff.D1_2;
+			} else if (diff == RankDiff.D1_0) {
+				node.rank++;
+				counter++;
+				prev = RankDiff.D2_1;
+			} else if (diff == RankDiff.D0_2) {
+				if (prev == RankDiff.D1_2) {
+					rotateRight(node);
+				} else {
+					doubleRotateLeftRight(node);
+				}
+				counter++;
+				return counter;
+			} else if (diff == RankDiff.D2_0) {
+				if (prev == RankDiff.D2_1) {
+					rotateLeft(node);
+				} else {
+					doubleRotateRightLeft(node);
+				}
+				counter++;
+				return counter;
+			} else if (diff == RankDiff.D1_1) {
+				return counter;
+			}
+
+			node = node.parent;
+		}
+		return counter;
 	}
 
 	/**
@@ -196,11 +278,11 @@ public class WAVLTree {
 	 */
 	private void deleteLeafNode(WAVLNode parentNode, boolean isLeftChild) {
 		if (parentNode == null) { // deletion of a leaf which is the root
-			this.root = null;
+			this.setRoot(null);
 		} else if (isLeftChild) {
-			parentNode.leftChild = null;
+			parentNode.setLeftChild(null);
 		} else {
-			parentNode.rightChild = null;
+			parentNode.setRightChild(null);
 		}
 	}
 
@@ -217,11 +299,11 @@ public class WAVLTree {
 	 */
 	private void deleteNodeWithOneChild(WAVLNode parent, WAVLNode childOfChild, boolean isLeftChild) {
 		if (parent == null) {
-			this.root = childOfChild;
+			this.setRoot(childOfChild);
 		} else if (isLeftChild) {
-			parent.leftChild = childOfChild;
+			parent.setLeftChild(childOfChild);
 		} else {
-			parent.rightChild = childOfChild;
+			parent.setRightChild(childOfChild);
 		}
 	}
 
@@ -244,24 +326,24 @@ public class WAVLTree {
 
 		// first, we disconnect our successor from its parent
 		if (successorParent != null) {
-			successorParent.leftChild = successor.rightChild;
+			successorParent.setLeftChild(successor.rightChild);
 		}
 
 		// now we assign our successor a new parent
 		if (parent == null) { // deletion of root
-			this.root = successor;
+			this.setRoot(successor);
 		} else if (isLeftChild) {
-			parent.leftChild = successor;
+			parent.setLeftChild(successor);
 		} else {
-			parent.rightChild = successor;
+			parent.setRightChild(successor);
 		}
 
 		// now we assign our successor its new children - those of the node we
 		// want to delete
-		successor.leftChild = child.leftChild;
+		successor.setLeftChild(child.leftChild);
 		if (successorParent != null) { // to prevent a node from being its own
 										// child
-			successor.rightChild = child.rightChild;
+			successor.setRightChild(child.rightChild);
 		}
 	}
 
@@ -376,11 +458,65 @@ public class WAVLTree {
 	/**
 	 * returns the rank of a node or -1 if node is null (external node)
 	 */
-	private int getRank(WAVLNode node) {
+	private static int getRank(WAVLNode node) {
 		if (node == null) { // external leaf
 			return -1;
 		}
 		return node.rank;
+	}
+
+	private void rotateRight(WAVLNode node) {
+		WAVLNode parent = node.parent;
+		boolean isLeftChild = parent != null && node.parent.leftChild == node;
+
+		WAVLNode k = node.leftChild;
+		node.setLeftChild(k.rightChild);
+		k.setRightChild(node);
+
+		if (parent != null) {
+			if (isLeftChild) {
+				parent.setLeftChild(k);
+			} else {
+				parent.setRightChild(k);
+			}
+		} else {
+			this.setRoot(k);
+		}
+
+		node.rank--;
+	}
+
+	private void rotateLeft(WAVLNode node) {
+		WAVLNode parent = node.parent;
+		boolean isLeftChild = parent != null && node.parent.leftChild == node;
+
+		WAVLNode k = node.rightChild;
+		node.setRightChild(k.leftChild);
+		k.setLeftChild(node);
+
+		if (parent != null) {
+			if (isLeftChild) {
+				parent.setLeftChild(k);
+			} else {
+				parent.setRightChild(k);
+			}
+		} else {
+			this.setRoot(k);
+		}
+
+		node.rank--;
+	}
+
+	private void doubleRotateLeftRight(WAVLNode node) {
+		rotateLeft(node.leftChild);
+		rotateRight(node);
+		node.parent.rank++;
+	}
+
+	private void doubleRotateRightLeft(WAVLNode node) {
+		rotateRight(node.rightChild);
+		rotateLeft(node);
+		node.parent.rank++;
 	}
 
 	private static class WAVLNode {
@@ -403,8 +539,8 @@ public class WAVLTree {
 
 		public void setRightChild(WAVLNode rightChild) {
 			this.rightChild = rightChild;
-			if (leftChild != null) {
-				leftChild.parent = this;
+			if (rightChild != null) {
+				rightChild.parent = this;
 			}
 		}
 
@@ -432,9 +568,13 @@ public class WAVLTree {
 		WAVLTree tree = new WAVLTree();
 
 		tree.insert(5, "Bla5");
+		System.out.println("i5");
 		tree.insert(7, "Bla7");
+		System.out.println("i7");
 		tree.insert(6, "Bla6");
+		System.out.println("i6");
 		tree.insert(2, "Bla2");
+		System.out.println("i2");
 		tree.insert(2, "Bla22");
 		tree.insert(1, "Bla1");
 		tree.insert(8, "Bla8");
