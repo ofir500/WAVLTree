@@ -153,6 +153,49 @@ public class WAVLTree {
 		return balanceAfterInsert(newNode.parent);
 	}
 
+	private int balanceAfterInsert(WAVLNode node) {
+		if (node == null) {
+			return 0;
+		}
+	
+		RankDiff prev = RankDiff.D1_1;
+		int counter = 0;
+	
+		while (node != null) {
+			RankDiff diff = RankDiff.of(node);
+			if (diff == RankDiff.D0_1) {
+				node.rank++;
+				counter++;
+				prev = RankDiff.D1_2;
+			} else if (diff == RankDiff.D1_0) {
+				node.rank++;
+				counter++;
+				prev = RankDiff.D2_1;
+			} else if (diff == RankDiff.D0_2) {
+				if (prev == RankDiff.D1_2) {
+					rotateRight(node);
+				} else {
+					doubleRotateLeftRight(node);
+				}
+				counter++;
+				return counter;
+			} else if (diff == RankDiff.D2_0) {
+				if (prev == RankDiff.D2_1) {
+					rotateLeft(node);
+				} else {
+					doubleRotateRightLeft(node);
+				}
+				counter++;
+				return counter;
+			} else if (diff == RankDiff.D1_1) {
+				return counter;
+			}
+	
+			node = node.parent;
+		}
+		return counter;
+	}
+
 	/**
 	 * deletes an item with key k from the binary tree, if it is there; the tree
 	 * must remain valid (keep its invariants). returns the number of
@@ -184,49 +227,6 @@ public class WAVLTree {
 				}
 			}
 		}
-	}
-
-	private int balanceAfterInsert(WAVLNode node) {
-		if (node == null) {
-			return 0;
-		}
-
-		RankDiff prev = RankDiff.D1_1;
-		int counter = 0;
-
-		while (node != null) {
-			RankDiff diff = RankDiff.of(node);
-			if (diff == RankDiff.D0_1) {
-				node.rank++;
-				counter++;
-				prev = RankDiff.D1_2;
-			} else if (diff == RankDiff.D1_0) {
-				node.rank++;
-				counter++;
-				prev = RankDiff.D2_1;
-			} else if (diff == RankDiff.D0_2) {
-				if (prev == RankDiff.D1_2) {
-					rotateRight(node);
-				} else {
-					doubleRotateLeftRight(node);
-				}
-				counter++;
-				return counter;
-			} else if (diff == RankDiff.D2_0) {
-				if (prev == RankDiff.D2_1) {
-					rotateLeft(node);
-				} else {
-					doubleRotateRightLeft(node);
-				}
-				counter++;
-				return counter;
-			} else if (diff == RankDiff.D1_1) {
-				return counter;
-			}
-
-			node = node.parent;
-		}
-		return counter;
 	}
 
 	/**
