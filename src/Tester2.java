@@ -11,7 +11,7 @@ public class Tester2 {
         List<Integer> nums = new ArrayList<>();
         Random rnd = new Random();
 
-        for (int i = 1; i <= 100000; i++) {
+        for (int i = 1; i <= 500000; i++) {
             if (i == 10) {
                 new Tester().new TreePrint().printNode(tree.getRoot());
             }

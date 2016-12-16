@@ -574,7 +574,7 @@ public class WAVLTree {
 	 */
 	private void rotateRight(WAVLNode node, boolean afterDeletion) {
 		WAVLNode parent = node.parent;
-		boolean isLeftChild = parent != null && node.parent.leftChild == node;
+		boolean isLeftChild = parent != null && parent.leftChild == node;
 
 		// make the rotation
 		WAVLNode k = node.leftChild;
@@ -607,7 +607,7 @@ public class WAVLTree {
 	 */
 	private void rotateLeft(WAVLNode node, boolean afterDeletion) {
 		WAVLNode parent = node.parent;
-		boolean isLeftChild = parent != null && node.parent.leftChild == node;
+		boolean isLeftChild = parent != null && parent.leftChild == node;
 
 		// make the rotation
 		WAVLNode k = node.rightChild;
