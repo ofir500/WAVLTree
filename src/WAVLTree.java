@@ -176,7 +176,7 @@ public class WAVLTree {
 			}
 		}
 
-		return rebalanceAfterInsert(newNode.parent);
+		return rebalanceAfterInsertion(newNode.parent);
 	}
 
 	/**
@@ -184,7 +184,7 @@ public class WAVLTree {
 	 * returns the amount of rebalancing operations needed.
 	 * algorithm is as described in course presentation using rank differences of a node.
 	 */
-	private int rebalanceAfterInsert(WAVLNode node) {
+	private int rebalanceAfterInsertion(WAVLNode node) {
 		if (node == null) { // reached root. tree is balanced
 			return 0;
 		}
