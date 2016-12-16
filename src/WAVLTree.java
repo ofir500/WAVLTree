@@ -1,5 +1,3 @@
-import java.util.*;
-
 /**
  * WAVLTree
  * <p>
@@ -9,21 +7,22 @@ import java.util.*;
 public class WAVLTree {
 
 	enum NodeType {
-		LEAF, RIGHT_CHILD_ONLY, LEFT_CHILD_ONLY, TWO_CHILDREN;
+		LEAF, UNARY_RIGHT, UNARY_LEFT, TWO_CHILDREN;
 
 		static NodeType of(WAVLNode node) {
 			if (node.leftChild != null && node.rightChild != null) {
 				return TWO_CHILDREN;
 			} else if (node.leftChild != null) {
-				return LEFT_CHILD_ONLY;
+				return UNARY_LEFT;
 			} else if (node.rightChild != null) {
-				return RIGHT_CHILD_ONLY;
+				return UNARY_RIGHT;
 			} else {
 				return LEAF;
 			}
 		}
 	}
 
+	// this enum represents the rank differences of a node.
 	enum RankDiff {
 		D0_1, D0_2, D1_0, D1_1, D1_2, D1_3, D2_0, D2_1, D2_2, D2_3, D3_1, D3_2;
 
@@ -96,24 +95,27 @@ public class WAVLTree {
 	 * otherwise, returns null
 	 */
 	public String search(int k) {
-		return search(k, this.root);
+		WAVLNode node = search(k, this.root);
+
+		if (node == null) {
+			return null;
+		}
+		return node.info;
 	}
 
 	/**
 	 * returns the info of an item with key k if it exists in the sub-tree
 	 * otherwise, returns null
-	 * 
-	 * @param k
-	 *            - key of node in the tree
-	 * @param node
-	 *            - root of a sub-tree
+	 *
+	 * @param k    - key of node in the tree
+	 * @param node - root of a sub-tree
 	 */
-	private String search(int k, WAVLNode node) {
+	private WAVLNode search(int k, WAVLNode node) {
 		while (true) {
 			if (node == null) {
 				return null;
 			} else if (node.key == k) {
-				return node.info;
+				return node;
 			} else if (k > node.key) {
 				node = node.rightChild;
 			} else {
@@ -138,24 +140,25 @@ public class WAVLTree {
 
 		WAVLNode currentNode = this.root;
 		while (true) {
-			if (k == currentNode.key) { // case 1: node with key k already
-										// exists
+			// case 1: node with key k already exists
+			if (k == currentNode.key) {
 				return -1;
 
-			} else if (k > currentNode.key) { // node should be placed in the
-												// right sub-tree
-				if (currentNode.rightChild == null) { // we found where to place
-														// the node
+				// case 2: node should be placed in the right sub-tree
+			} else if (k > currentNode.key) {
+				// we found where to place the node
+				if (currentNode.rightChild == null) {
 					currentNode.setRightChild(newNode);
 					this.size++;
 					break;
-				} else {
+				} else { // continue the search
 					currentNode = currentNode.rightChild;
 				}
 
-			} else { // node should be placed in the left sub-tree
-				if (currentNode.leftChild == null) { // we found where to place
-														// the node
+				// case 3: node should be placed in the left sub-tree
+			} else {
+				// we found where to place the node
+				if (currentNode.leftChild == null) {
 					currentNode.setLeftChild(newNode);
 					this.size++;
 					break;
@@ -165,11 +168,11 @@ public class WAVLTree {
 			}
 		}
 
-		return balanceAfterInsert(newNode.parent);
+		return rebalanceAfterInsert(newNode.parent);
 	}
 
-	private int balanceAfterInsert(WAVLNode node) {
-		if (node == null) {
+	private int rebalanceAfterInsert(WAVLNode node) {
+		if (node == null) { // reached root. tree is balanced
 			return 0;
 		}
 
@@ -178,14 +181,20 @@ public class WAVLTree {
 
 		while (node != null) {
 			RankDiff diff = RankDiff.of(node);
+
+			// promotion
 			if (diff == RankDiff.D0_1) {
 				node.rank++;
 				counter++;
 				prev = RankDiff.D1_2;
+
+				// promotion
 			} else if (diff == RankDiff.D1_0) {
 				node.rank++;
 				counter++;
 				prev = RankDiff.D2_1;
+
+				// rotation required
 			} else if (diff == RankDiff.D0_2) {
 				if (prev == RankDiff.D1_2) {
 					rotateRight(node, false);
@@ -195,6 +204,8 @@ public class WAVLTree {
 					counter += 2;
 				}
 				return counter;
+
+				// rotation required. symmetrical case
 			} else if (diff == RankDiff.D2_0) {
 				if (prev == RankDiff.D2_1) {
 					rotateLeft(node, false);
@@ -204,12 +215,14 @@ public class WAVLTree {
 					counter += 2;
 				}
 				return counter;
+
 			} else if (diff == RankDiff.D1_1) {
 				return counter;
 			}
 
 			node = node.parent;
 		}
+
 		return counter;
 	}
 
@@ -220,64 +233,44 @@ public class WAVLTree {
 	 * returns -1 if an item with key k was not found in the tree.
 	 */
 	public int delete(int k) {
-		// we need to find the node to be deleted and its parent
-		WAVLNode parent = null;
-		WAVLNode child = this.root;
-		boolean isLeftChild = false;
-
-		while (true) {
-			if (child == null) { // case 1: the key is not in the tree
-				return -1;
-
-			} else if (child.key == k) { // case 2: we found the node to be
-											// deleted
-				return delete(parent, child, isLeftChild);
-
-			} else { // case 3: continue the search for the node
-				parent = child;
-				if (k < child.key) {
-					child = child.leftChild;
-					isLeftChild = true;
-				} else {
-					child = child.rightChild;
-					isLeftChild = false;
-				}
-			}
+		// we need to find the node to be deleted
+		WAVLNode node = search(k, this.root);
+		if (node == null) {
+			// the key is not in the tree
+			return -1;
 		}
+
+		boolean isLeftChild = node.parent != null && node.parent.leftChild == node;
+		return delete(node, isLeftChild);
 	}
 
 	/**
 	 * deletes a node from the tree; returns the number of rebalancing
 	 * operations, or 0 if no rebalancing operations were needed.
-	 * 
-	 * @param parent
-	 *            - parent node of the node to be deleted. null if node to be
-	 *            deleted is the root
-	 * @param child
-	 *            - the node to be deleted
-	 * @param isLeftChild
-	 *            - should be set to true if the node to be deleted is a left
-	 *            child of its parent
+	 *
+	 * @param node        - the node to be deleted
+	 * @param isLeftChild - should be set to true if the node to be deleted is a left
+	 *                    child of its parent
 	 * @return
 	 */
-	public int delete(WAVLNode parent, WAVLNode child, boolean isLeftChild) {
-		NodeType type = NodeType.of(child);
+	public int delete(WAVLNode node, boolean isLeftChild) {
+		NodeType type = NodeType.of(node);
 		int res;
 
 		if (type == NodeType.LEAF) { // case 1: the node to be deleted has no children.
-			deleteLeafNode(parent, isLeftChild);
-			res = balanceAfterDeletion(parent);
+			deleteLeafNode(node.parent, isLeftChild);
+			res = balanceAfterDeletion(node.parent);
 
-		} else if (type == NodeType.LEFT_CHILD_ONLY) { // case 2.1: the node to be deleted has only a left child
-			deleteNodeWithOneChild(parent, child.leftChild, isLeftChild);
-			res = balanceAfterDeletion(child.leftChild);
+		} else if (type == NodeType.UNARY_LEFT) { // case 2.1: the node to be deleted has only a left child
+			deleteNodeWithOneChild(node.parent, node.leftChild, isLeftChild);
+			res = balanceAfterDeletion(node.leftChild);
 
-		} else if (type == NodeType.RIGHT_CHILD_ONLY) { // case 2.2: the node to be deleted has only a right child
-			deleteNodeWithOneChild(parent, child.rightChild, isLeftChild);
-			res = balanceAfterDeletion(child.rightChild);
+		} else if (type == NodeType.UNARY_RIGHT) { // case 2.2: the node to be deleted has only a right child
+			deleteNodeWithOneChild(node.parent, node.rightChild, isLeftChild);
+			res = balanceAfterDeletion(node.rightChild);
 
 		} else { // case 3: the node to be deleted has 2 children
-			WAVLNode n = deleteNodeWithTwoChildren(parent, child, isLeftChild);
+			WAVLNode n = deleteNodeWithTwoChildren(node.parent, node, isLeftChild);
 			res = balanceAfterDeletion(n);
 		}
 
@@ -287,12 +280,10 @@ public class WAVLTree {
 
 	/**
 	 * deletes a node with no children.
-	 * 
-	 * @param parentNode
-	 *            - parent of the node to be deleted
-	 * @param isLeftChild
-	 *            - should be set to true if the node to be deleted is a left
-	 *            child of its parent
+	 *
+	 * @param parentNode  - parent of the node to be deleted
+	 * @param isLeftChild - should be set to true if the node to be deleted is a left
+	 *                    child of its parent
 	 */
 	private void deleteLeafNode(WAVLNode parentNode, boolean isLeftChild) {
 		if (parentNode == null) { // deletion of a leaf which is the root
@@ -306,14 +297,11 @@ public class WAVLTree {
 
 	/**
 	 * deletes a node that has one child only
-	 * 
-	 * @param parent
-	 *            - parent of the node to be deleted
-	 * @param childOfChild
-	 *            - the one child of the node to be deleted
-	 * @param isLeftChild
-	 *            - should be set to true if the node to be deleted is a left
-	 *            child of its parent
+	 *
+	 * @param parent       - parent of the node to be deleted
+	 * @param childOfChild - the one child of the node to be deleted
+	 * @param isLeftChild  - should be set to true if the node to be deleted is a left
+	 *                     child of its parent
 	 */
 	private void deleteNodeWithOneChild(WAVLNode parent, WAVLNode childOfChild, boolean isLeftChild) {
 		if (parent == null) {
@@ -327,14 +315,11 @@ public class WAVLTree {
 
 	/**
 	 * deletes a node that has two children
-	 * 
-	 * @param parent
-	 *            - parent of the node to be deleted
-	 * @param child
-	 *            - the node to be deleted
-	 * @param isLeftChild
-	 *            - should be set to true if the node to be deleted is a left
-	 *            child of its parent
+	 *
+	 * @param parent      - parent of the node to be deleted
+	 * @param child       - the node to be deleted
+	 * @param isLeftChild - should be set to true if the node to be deleted is a left
+	 *                    child of its parent
 	 */
 	private WAVLNode deleteNodeWithTwoChildren(WAVLNode parent, WAVLNode child, boolean isLeftChild) {
 		// find the successor of the node to be deleted
@@ -378,7 +363,7 @@ public class WAVLTree {
 		RankDiff diff = RankDiff.of(node);
 
 		// we start by demoting a 2,2 leaf if we have one
-		if (diff == RankDiff.D2_2 &&  NodeType.of(node) == NodeType.LEAF) {
+		if (diff == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
 			node.rank--;
 			counter++;
 			node = node.parent;
@@ -387,7 +372,7 @@ public class WAVLTree {
 
 		while (node != null) {
 			// single demote of leaf
- 			if (diff == RankDiff.D3_2 || diff == RankDiff.D2_3) {
+			if (diff == RankDiff.D3_2 || diff == RankDiff.D2_3) {
 				node.rank--;
 				counter++;
 
@@ -468,11 +453,9 @@ public class WAVLTree {
 	/**
 	 * finds the minimal node in a sub-tree, and its parent
 	 *
-	 * @param node
-	 *            - root of sub-tree
+	 * @param node - root of sub-tree
 	 * @return ParentChildPair - child is the minimal node of the sub-tree
-	 * @throws NullPointerException
-	 *             - if node is null
+	 * @throws NullPointerException - if node is null
 	 */
 	private ParentChildPair minNode(WAVLNode node) {
 		while (true) {
@@ -700,41 +683,5 @@ public class WAVLTree {
 			this.child = child;
 		}
 	}
-
-	public static void main(String[] args) {
-
-		WAVLTree tree = new WAVLTree();
-		/*tree.insert(2, null);
-		tree.insert(1, null);
-		tree.insert(4, null);
-		tree.insert(3, null);
-		Tester.TreePrint tp = new Tester().new TreePrint(); tp.printNode(tree.root);
-		tree.delete(1);
-		tp.printNode(tree.root);*/
-
-		List<Integer> nums = new ArrayList<>();
-		Random rnd = new Random();
-		for (int i = 1; i <= 100000; i++) {
-			int num = rnd.nextInt(Integer.MAX_VALUE);
-			tree.insert(num, String.valueOf(i));
-			nums.add(num);
-		}
-		//checkTree(tree.root);
-		Collections.shuffle(nums);
-
-		for (int i=0; i < nums.size(); i++) {
-			tree.delete(nums.get(i));
-		}
-
-		//Tester.TreePrint tp = new Tester().new TreePrint(); tp.printNode(tree.root);
-		//Tester t = new Tester();
-		//t.run();
-		System.out.println("done");
-
-
-		//Tester tester = new Tester();
-		//tester.run();
-	}
-
-
+    
 }
