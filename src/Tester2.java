@@ -15,6 +15,9 @@ public class Tester2 {
         Random rnd = new Random();
 
         for (int i = 1; i <= 100000; i++) {
+            if (i == 10) {
+                new Tester().new TreePrint().printNode(tree.getRoot());
+            }
             int num = rnd.nextInt(Integer.MAX_VALUE);
             tree.insert(num, String.valueOf(num));
             nums.add(num);
