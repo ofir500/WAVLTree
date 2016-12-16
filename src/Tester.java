@@ -1,9 +1,6 @@
 import java.text.DecimalFormat;
 import java.util.*;
 
-/**
- * Created by Ofir on 16/12/2016.
- */
 public class Tester {
     class TreePrint {
 

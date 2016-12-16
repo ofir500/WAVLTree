@@ -3,9 +3,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Created by Ofir on 02/12/2016.
- */
 public class Tester2 {
 
     public static void main(String[] args) {
@@ -18,7 +15,8 @@ public class Tester2 {
             if (i == 10) {
                 new Tester().new TreePrint().printNode(tree.getRoot());
             }
-            int num = rnd.nextInt(Integer.MAX_VALUE);
+            //int num = rnd.nextInt(Integer.MAX_VALUE);
+            int num = i;
             tree.insert(num, String.valueOf(num));
             nums.add(num);
         }
@@ -27,6 +25,9 @@ public class Tester2 {
 
         for (int i = 0; i < nums.size(); i++) {
             tree.delete(nums.get(i));
+            if (i == nums.size() - 11) {
+                new Tester().new TreePrint().printNode(tree.getRoot());
+            }
         }
 
         if (tree.empty()) {
