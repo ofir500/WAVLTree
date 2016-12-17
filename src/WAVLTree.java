@@ -575,30 +575,15 @@ public class WAVLTree {
 	 *                      rotation after insertion requires different rank maintaining than after deletion.
 	 */
 	private void rotateRight(WAVLNode node, boolean afterDeletion) {
-		WAVLNode parent = node.parent;
-		boolean isLeftChild = parent != null && parent.leftChild == node;
+		WAVLNode oldParent = node.parent; // need to save it now before it changes
+		boolean isLeftChild = oldParent != null && oldParent.leftChild == node;
 
 		// make the rotation
 		WAVLNode k = node.leftChild;
 		node.setLeftChild(k.rightChild);
 		k.setRightChild(node);
 
-		// connect the rotated sub-tree to the tree
-		if (parent != null) {
-			if (isLeftChild) {
-				parent.setLeftChild(k);
-			} else {
-				parent.setRightChild(k);
-			}
-		} else {
-			this.setRoot(k);
-		}
-
-		// maintain ranks
-		node.rank--;
-		if (afterDeletion) {
-			k.rank++;
-		}
+		finishRotation(node, k, oldParent, isLeftChild, afterDeletion);
 	}
 
 	/**
@@ -609,20 +594,35 @@ public class WAVLTree {
 	 *                      rotation after insertion requires different rank maintaining than after deletion.
 	 */
 	private void rotateLeft(WAVLNode node, boolean afterDeletion) {
-		WAVLNode parent = node.parent;
-		boolean isLeftChild = parent != null && parent.leftChild == node;
+		WAVLNode oldParent = node.parent; // need to save it now before it changes
+		boolean isLeftChild = oldParent != null && oldParent.leftChild == node;
 
 		// make the rotation
 		WAVLNode k = node.rightChild;
 		node.setRightChild(k.leftChild);
 		k.setLeftChild(node);
 
+		finishRotation(node, k, oldParent, isLeftChild, afterDeletion);
+	}
+
+	/**
+	 * finished a rotation operation by connecting the rotated sub-tree to the tree,
+	 * and by promoting or demoting ranks in order to maintain the rank rule
+	 *
+	 * @param node          - the (previously) parent node that was rotated
+	 * @param k             - the (previously) child node that was rotated
+	 * @param oldParent     - the old parent of @param node
+	 * @param isLeftChild   - should be set to true if @param node was a left child of its parent
+	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
+	 *                      rotation after insertion requires different rank maintaining than after deletion.
+	 */
+	private void finishRotation(WAVLNode node, WAVLNode k, WAVLNode oldParent, boolean isLeftChild, boolean afterDeletion) {
 		// connect the rotated sub-tree to the tree
-		if (parent != null) {
+		if (oldParent != null) {
 			if (isLeftChild) {
-				parent.setLeftChild(k);
+				oldParent.setLeftChild(k);
 			} else {
-				parent.setRightChild(k);
+				oldParent.setRightChild(k);
 			}
 		} else {
 			this.setRoot(k);
