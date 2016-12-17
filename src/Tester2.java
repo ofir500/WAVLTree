@@ -5,6 +5,13 @@ import java.util.Random;
 
 public class Tester2 {
 
+    private static int height(WAVLTree.WAVLNode node) {
+        if (node == null) {
+            return -1;
+        }
+        return Math.max(height(node.getLeftChild()), height(node.getRightChild())) + 1;
+    }
+
     public static void main(String[] args) {
 
         WAVLTree tree = new WAVLTree();
@@ -21,6 +28,7 @@ public class Tester2 {
             nums.add(num);
         }
 
+        System.out.printf("size: %d\theight: %d%n", tree.size(), height(tree.getRoot()));
         Collections.shuffle(nums);
 
         for (int i = 0; i < nums.size(); i++) {

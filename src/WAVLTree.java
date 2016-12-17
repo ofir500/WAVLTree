@@ -82,6 +82,7 @@ public class WAVLTree {
 
 	/**
 	 * sets a new root and sets its parent to null
+	 *
 	 * @param root - new root of tree
 	 */
 	private void setRoot(WAVLNode root) {
@@ -297,7 +298,7 @@ public class WAVLTree {
 	/**
 	 * deletes a node with no children.
 	 *
-	 * @param parent  - parent of the node to be deleted
+	 * @param parent      - parent of the node to be deleted
 	 * @param isLeftChild - should be set to true if the node to be deleted is a left
 	 *                    child of its parent
 	 */
@@ -334,7 +335,7 @@ public class WAVLTree {
 	 * returns the successor's old parent,
 	 * or the successor itself if the parent is the node we deleted.
 	 *
-	 * @param node       - the node to be deleted
+	 * @param node        - the node to be deleted
 	 * @param isLeftChild - should be set to true if the node to be deleted is a left
 	 *                    child of its parent
 	 */
@@ -568,7 +569,8 @@ public class WAVLTree {
 
 	/**
 	 * rotates a node to the right.
-	 * @param node - node to be rotated
+	 *
+	 * @param node          - node to be rotated
 	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
 	 *                      rotation after insertion requires different rank maintaining than after deletion.
 	 */
@@ -601,7 +603,8 @@ public class WAVLTree {
 
 	/**
 	 * rotates a node to the left.
-	 * @param node - node to be rotated
+	 *
+	 * @param node          - node to be rotated
 	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
 	 *                      rotation after insertion requires different rank maintaining than after deletion.
 	 */
@@ -636,7 +639,8 @@ public class WAVLTree {
 	 * makes a double rotation.
 	 * first, a rotation to the left of the left child,
 	 * then, a rotation to the right of the given node
-	 * @param node - node to be double rotated
+	 *
+	 * @param node          - node to be double rotated
 	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
 	 *                      rotation after insertion requires different rank maintaining than after deletion.
 	 */
@@ -655,7 +659,8 @@ public class WAVLTree {
 	 * makes a double rotation.
 	 * first, a rotation to the right of the right child,
 	 * then, a rotation to the left of the given node
-	 * @param node - node to be double rotated
+	 *
+	 * @param node          - node to be double rotated
 	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
 	 *                      rotation after insertion requires different rank maintaining than after deletion.
 	 */
