@@ -269,17 +269,17 @@ public class WAVLTree {
 
 		// case 1: the node to be deleted has no children.
 		if (type == NodeType.LEAF) {
-			deleteLeafNode(node.parent, isLeftChild);
+			deleteLeafOrUnaryNode(node.parent, null, isLeftChild);
 			res = rebalanceAfterDeletion(node.parent);
 
 			// case 2.1: the node to be deleted has only a left child
 		} else if (type == NodeType.UNARY_LEFT) {
-			deleteNodeWithOneChild(node.parent, node.leftChild, isLeftChild);
+			deleteLeafOrUnaryNode(node.parent, node.leftChild, isLeftChild);
 			res = rebalanceAfterDeletion(node.leftChild);
 
 			// case 2.2: the node to be deleted has only a right child
 		} else if (type == NodeType.UNARY_RIGHT) {
-			deleteNodeWithOneChild(node.parent, node.rightChild, isLeftChild);
+			deleteLeafOrUnaryNode(node.parent, node.rightChild, isLeftChild);
 			res = rebalanceAfterDeletion(node.rightChild);
 
 			// case 3: the node to be deleted has 2 children
@@ -293,31 +293,14 @@ public class WAVLTree {
 	}
 
 	/**
-	 * deletes a node with no children.
-	 *
-	 * @param parent      - parent of the node to be deleted
-	 * @param isLeftChild - should be set to true if the node to be deleted is a left
-	 *                    child of its parent
-	 */
-	private void deleteLeafNode(WAVLNode parent, boolean isLeftChild) {
-		if (parent == null) { // deletion of a leaf which is the root
-			this.setRoot(null);
-		} else if (isLeftChild) {
-			parent.setLeftChild(null);
-		} else {
-			parent.setRightChild(null);
-		}
-	}
-
-	/**
-	 * deletes a node that has one child only
+	 * deletes a node that has only one child or no children at all
 	 *
 	 * @param parent       - parent of the node to be deleted
-	 * @param childOfChild - the one child of the node to be deleted
+	 * @param childOfChild - the one child of the node to be deleted, or null if the node is a leaf
 	 * @param isLeftChild  - should be set to true if the node to be deleted is a left
 	 *                     child of its parent
 	 */
-	private void deleteNodeWithOneChild(WAVLNode parent, WAVLNode childOfChild, boolean isLeftChild) {
+	private void deleteLeafOrUnaryNode(WAVLNode parent, WAVLNode childOfChild, boolean isLeftChild) {
 		if (parent == null) {
 			this.setRoot(childOfChild);
 		} else if (isLeftChild) {
