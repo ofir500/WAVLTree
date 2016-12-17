@@ -589,7 +589,7 @@ public class WAVLTree {
 	}
 
 	/**
-	 * finished a rotation operation by connecting the rotated sub-tree to the tree,
+	 * finishes a rotation operation by connecting the rotated sub-tree to the tree,
 	 * and by promoting or demoting ranks in order to maintain the rank rule
 	 *
 	 * @param node          - the (previously) parent node that was rotated
