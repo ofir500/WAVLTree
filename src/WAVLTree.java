@@ -195,45 +195,42 @@ public class WAVLTree {
 
 		while (node != null) {
 			RankDiff diff = RankDiff.of(node);
-
-			// promotion
-			if (diff == RankDiff.D0_1) {
-				node.rank++;
-				counter++;
-				prev = RankDiff.D1_2;
-
-				// promotion. symmetrical case
-			} else if (diff == RankDiff.D1_0) {
-				node.rank++;
-				counter++;
-				prev = RankDiff.D2_1;
-
-				// rotation required
-			} else if (diff == RankDiff.D0_2) {
-				if (prev == RankDiff.D1_2) {
-					rotateRight(node, false);
+			switch (diff) {
+				case D0_1: // promotion
+					node.rank++;
 					counter++;
-				} else {
-					doubleRotateLeftRight(node, false);
-					counter += 2;
-				}
-				return counter;
+					prev = RankDiff.D1_2;
+					break;
 
-				// rotation required. symmetrical case
-			} else if (diff == RankDiff.D2_0) {
-				if (prev == RankDiff.D2_1) {
-					rotateLeft(node, false);
+				case D1_0: // promotion. symmetrical case
+					node.rank++;
 					counter++;
-				} else {
-					doubleRotateRightLeft(node, false);
-					counter += 2;
-				}
-				return counter;
+					prev = RankDiff.D2_1;
+					break;
 
-			} else if (diff == RankDiff.D1_1) {
-				return counter;
+				case D0_2: // rotation required
+					if (prev == RankDiff.D1_2) {
+						rotateRight(node, false);
+						counter++;
+					} else {
+						doubleRotateLeftRight(node, false);
+						counter += 2;
+					}
+					return counter;
+
+				case D2_0: // rotation required. symmetrical case
+					if (prev == RankDiff.D2_1) {
+						rotateLeft(node, false);
+						counter++;
+					} else {
+						doubleRotateRightLeft(node, false);
+						counter += 2;
+					}
+					return counter;
+
+				case D1_1:
+					return counter;
 			}
-
 			node = node.parent;
 		}
 
@@ -393,64 +390,67 @@ public class WAVLTree {
 		}
 
 		while (node != null) {
-			// single demote
-			if (diff == RankDiff.D3_2 || diff == RankDiff.D2_3) {
-				node.rank--;
-				counter++;
-
-			} else if (diff == RankDiff.D3_1) {
-				RankDiff prev = RankDiff.of(node.rightChild);
-				// double demote
-				if (prev == RankDiff.D2_2) {
+			switch (diff) {
+				case D3_2: // single demote
+				case D2_3:
 					node.rank--;
-					node.rightChild.rank--;
-					counter += 2;
-
-					// rotations
-				} else if (prev == RankDiff.D1_1 || prev == RankDiff.D2_1) {
-					rotateLeft(node, true);
-					// after rotation we might have created a 2,2 leaf, check and fix
-					if (RankDiff.of(node) == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
-						node.rank--;
-					}
 					counter++;
-					return counter;
+					break;
 
-					// double rotation
-				} else {
-					doubleRotateRightLeft(node, true);
-					counter += 2;
-					return counter;
+				case D3_1: {
+					RankDiff prev = RankDiff.of(node.rightChild);
+					// case 1: double demote
+					if (prev == RankDiff.D2_2) {
+						node.rank--;
+						node.rightChild.rank--;
+						counter += 2;
+						break;
+
+						// case 2: rotation
+					} else if (prev == RankDiff.D1_1 || prev == RankDiff.D2_1) {
+						rotateLeft(node, true);
+						// after rotation we might have created a 2,2 leaf, check and fix
+						if (RankDiff.of(node) == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
+							node.rank--;
+						}
+						counter++;
+						return counter;
+
+						// case 3: double rotation
+					} else {
+						doubleRotateRightLeft(node, true);
+						counter += 2;
+						return counter;
+					}
 				}
 
-				// symmetrical case
-			} else if (diff == RankDiff.D1_3) {
-				RankDiff prev = RankDiff.of(node.leftChild);
-
-				// double demote
-				if (prev == RankDiff.D2_2) {
-					node.rank--;
-					node.leftChild.rank--;
-					counter += 2;
-
-					// rotation
-				} else if (prev == RankDiff.D1_1 || prev == RankDiff.D1_2) {
-					rotateRight(node, true);
-					// after rotation we might have created a 2,2 leaf, check and fix
-					if (RankDiff.of(node) == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
+				case D1_3: { // symmetrical case to D3_1
+					RankDiff prev = RankDiff.of(node.leftChild);
+					// case 1: double demote
+					if (prev == RankDiff.D2_2) {
 						node.rank--;
-					}
-					counter++;
-					return counter;
+						node.leftChild.rank--;
+						counter += 2;
+						break;
 
-					//double rotation
-				} else {
-					doubleRotateLeftRight(node, true);
-					counter += 2;
-					return counter;
+						// case 2: rotation
+					} else if (prev == RankDiff.D1_1 || prev == RankDiff.D1_2) {
+						rotateRight(node, true);
+						// after rotation we might have created a 2,2 leaf, check and fix
+						if (RankDiff.of(node) == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
+							node.rank--;
+						}
+						counter++;
+						return counter;
+
+						//case 3: double rotation
+					} else {
+						doubleRotateLeftRight(node, true);
+						counter += 2;
+						return counter;
+					}
 				}
 			}
-
 			node = node.parent;
 			diff = RankDiff.of(node);
 		}
