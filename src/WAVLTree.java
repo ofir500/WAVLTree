@@ -266,7 +266,7 @@ public class WAVLTree {
 	 * @param isLeftChild - should be set to true if the node to be deleted is a left
 	 *                    child of its parent
 	 */
-	public int delete(WAVLNode node, boolean isLeftChild) {
+	private int delete(WAVLNode node, boolean isLeftChild) {
 		NodeType type = NodeType.of(node);
 		int res;
 
@@ -694,7 +694,11 @@ public class WAVLTree {
 		}
 
 		Integer getKey() {
-			return key;
+			return this.key;
+		}
+
+		String getInfo() {
+			return this.info;
 		}
 
 		Integer getRank() {
@@ -702,15 +706,15 @@ public class WAVLTree {
 		}
 
 		WAVLNode getParent() {
-			return parent;
+			return this.parent;
 		}
 
 		WAVLNode getRightChild() {
-			return rightChild;
+			return this.rightChild;
 		}
 
 		WAVLNode getLeftChild() {
-			return leftChild;
+			return this.leftChild;
 		}
 
 		/*
