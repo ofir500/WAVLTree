@@ -6,7 +6,7 @@
 
 public class WAVLTree {
 
-	enum NodeType {
+	private enum NodeType {
 		LEAF, UNARY_RIGHT, UNARY_LEFT, TWO_CHILDREN;
 
 		static NodeType of(WAVLNode node) {
@@ -23,7 +23,7 @@ public class WAVLTree {
 	}
 
 	// this enum represents the rank differences of a node.
-	enum RankDiff {
+	private enum RankDiff {
 		D0_1, D0_2, D1_0, D1_1, D1_2, D1_3, D2_0, D2_1, D2_2, D2_3, D3_1, D3_2;
 
 		static RankDiff of(WAVLNode node) {
@@ -34,8 +34,9 @@ public class WAVLTree {
 			int diffRight = getRank(node) - getRank(node.rightChild);
 
 			if (diffLeft == 0) {
-				if (diffRight == 1)
+				if (diffRight == 1) {
 					return D0_1;
+				}
 				return D0_2;
 			} else if (diffLeft == 1) {
 				if (diffRight == 0) {
