@@ -25,7 +25,7 @@ public class Tester {
             List<WAVLTree.WAVLNode> newNodes = new ArrayList<WAVLTree.WAVLNode>();
             for (WAVLTree.WAVLNode node : list) {
                 if (node != null) {
-                    System.out.print(node.getKey());
+                    System.out.print(node.getRank());
                     newNodes.add(node.getLeftChild());
                     newNodes.add(node.getRightChild());
                 } else {
@@ -230,7 +230,7 @@ public class Tester {
         if (node == null) {
             return;
         }
-        if (WAVLTree.NodeType.of(node) == WAVLTree.NodeType.LEAF) {
+        if (node.getLeftChild() == null && node.getRightChild() == null) {
             shtut.add(node);
         } else {
             shtut(shtut, node.getLeftChild());
