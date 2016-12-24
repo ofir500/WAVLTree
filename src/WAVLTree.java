@@ -1,4 +1,8 @@
 /**
+ * Created by:
+ * 				Ilor Ifrah 205828478  username: 
+ * 				Ofir Feffer 203565833 username: ofirfeffer
+ *
  * WAVLTree
  * <p>
  * An implementation of a WAVL Tree with distinct integer keys and info
@@ -79,7 +83,7 @@ public class WAVLTree {
 	}
 
 	/**
-	 * returns the root of the tree. package-private. for testing purposes only
+	 * returns the root of the tree.
 	 */
 	WAVLNode getRoot() {
 		return this.root;
@@ -275,7 +279,7 @@ public class WAVLTree {
 			return -1;
 		}
 
-		updateMinMaxOnDeletion(node.key); // needs to be done before rebalancing
+		updateMinMaxOnDeletion(k); // needs to be done before rebalancing
 		boolean isLeftChild = node.parent != null && node.parent.leftChild == node;
 		return delete(node, isLeftChild);
 	}
@@ -367,11 +371,9 @@ public class WAVLTree {
 			node.parent.setRightChild(successor);
 		}
 
-		// now we assign our successor its new children - those of the node we
-		// want to delete
+		// now we assign our successor its new children - those of the node we want to delete
 		successor.setLeftChild(node.leftChild);
-		if (successorParent != null) { // to prevent a node from being its own
-			// child
+		if (successorParent != null) { // to prevent a node from being its own child
 			successor.setRightChild(node.rightChild);
 		}
 
@@ -617,8 +619,7 @@ public class WAVLTree {
 	 *                      rank maintaining than after deletion.
 	 */
 	private void rotateRight(WAVLNode node, boolean afterDeletion) {
-		WAVLNode oldParent = node.parent; // need to save it now before it
-		// changes
+		WAVLNode oldParent = node.parent; // need to save it now before it changes
 		boolean isLeftChild = oldParent != null && oldParent.leftChild == node;
 
 		// make the rotation
@@ -725,7 +726,7 @@ public class WAVLTree {
 	}
 
 	public class WAVLNode {
-		private Integer key;
+		private int key;
 		private String info;
 		private int rank;
 
@@ -733,7 +734,7 @@ public class WAVLTree {
 		private WAVLNode rightChild;
 		private WAVLNode leftChild;
 
-		private WAVLNode(Integer key, String info) {
+		private WAVLNode(int key, String info) {
 			this.key = key;
 			this.info = info;
 			this.rank = 0;
