@@ -1,11 +1,9 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Tester2 {
 
 	static List<Integer> keysInTree = new ArrayList<>();
+	static TreeSet<Integer> javaTree = new TreeSet<>();
 
 	private static int height(WAVLTree.WAVLNode node) {
 		if (node == null) {
@@ -40,6 +38,19 @@ public class Tester2 {
 			int num = rnd.nextInt(Integer.MAX_VALUE);
 			tree.insert(num, String.valueOf(num));
 			keysInTree.add(num);
+			javaTree.add(num);
+			if (!tree.min().equals(String.valueOf(javaTree.first()))) {
+				System.out.println("problem with min");
+				System.exit(1);
+			}
+			if (!tree.max().equals(String.valueOf(javaTree.last()))) {
+				System.out.println("problem with max");
+				System.exit(1);
+			}
+			if (tree.size() != javaTree.size()) {
+				System.out.println("Problem with size");
+				System.exit(1);
+			}
 		}
 
 		System.out.println("Done insertion of " + numOfElements + " elements");
@@ -47,17 +58,33 @@ public class Tester2 {
 
 	private static void deleteRandomKeys(WAVLTree tree) {
 		Collections.shuffle(keysInTree);
-		System.out.println("Deleting elements in random order");
-		for (int i = 0; i < keysInTree.size(); i++) {
-			tree.delete(keysInTree.get(i));
+		System.out.println("Deleting elements in random order and checking ranks along the process.");
+
+		int length = keysInTree.size();
+		for (int i = 0; i < length; i++) {
+			int num = keysInTree.get(i);
+			javaTree.remove(num);
+			tree.delete(num);
+			if (tree.size() != javaTree.size()) {
+				System.out.println("Problem with size");
+				System.exit(1);
+			}
+			if (i != length -1 && !tree.min().equals(String.valueOf(javaTree.first()))) {
+				System.out.println("problem with min");
+				System.exit(1);
+			}
+			if (i != length -1 && !tree.max().equals(String.valueOf(javaTree.last()))) {
+				System.out.println("problem with max");
+				System.exit(1);
+			}
 			if (i % 10000 == 0) {
-				System.out.println("Checking ranks");
+				//System.out.println("Checking ranks");
 				if (!checkTreeAfterDeletions(tree.getRoot())) {
 					System.out.println("Something went wrong with the ranks during deletion");
 					System.exit(1);
-				} else {
+				} /*else {
 					System.out.println("Tree is still valid");
-				}
+				}*/
 			}
 		}
 	}
@@ -157,7 +184,7 @@ public class Tester2 {
 
 		deleteRandomKeys(tree);
 
-		if (tree.empty()) {
+		if (tree.empty() && javaTree.isEmpty()) {
 			System.out.println("done. tree is empty");
 		} else {
 			System.out.println("WTF: tree is marked as not empty yet we deleted all keys");

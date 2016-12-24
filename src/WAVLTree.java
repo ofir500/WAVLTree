@@ -146,7 +146,7 @@ public class WAVLTree {
 	 */
 	public int insert(int k, String i) {
 		WAVLNode newNode = new WAVLNode(k, i);
-		updateMinMaxOnInsert(newNode);
+		updateMinMaxOnInsertion(newNode);
 		if (this.root == null) { // if tree is empty, add as root
 			this.setRoot(newNode);
 			this.size++;
@@ -164,7 +164,6 @@ public class WAVLTree {
 				if (currentNode.rightChild == null) {
 					// we found where to place the node
 					currentNode.setRightChild(newNode);
-					this.size++;
 					break;
 				} else { // continue the search
 					currentNode = currentNode.rightChild;
@@ -175,7 +174,6 @@ public class WAVLTree {
 				if (currentNode.leftChild == null) {
 					// we found where to place the node
 					currentNode.setLeftChild(newNode);
-					this.size++;
 					break;
 				} else {
 					currentNode = currentNode.leftChild;
@@ -183,6 +181,9 @@ public class WAVLTree {
 			}
 		}
 
+		this.size++;
+		this.sortedKeys = null;
+		this.sortedInfo = null;
 		return rebalanceAfterInsertion(newNode.parent);
 	}
 
@@ -244,7 +245,14 @@ public class WAVLTree {
 		return counter;
 	}
 
-	private void updateMinMaxOnInsert(WAVLNode node) {
+	/**
+	 * updates the pointers of the minimum element and the maximum element
+	 * in case a higher/lower key was inserted to the tree
+	 *
+	 * @param node -
+	 *                the node that was inserted to the tree
+	 */
+	private void updateMinMaxOnInsertion(WAVLNode node) {
 		if (this.min == null || node.getKey() < this.min.getKey()) {
 			this.min = node;
 		}
@@ -260,8 +268,6 @@ public class WAVLTree {
 	 * returns -1 if an item with key k was not found in the tree.
 	 */
 	public int delete(int k) {
-		updateMinMaxOnDeletion(k);
-
 		// we need to find the node to be deleted
 		WAVLNode node = search(k, this.root);
 		if (node == null) {
@@ -269,6 +275,7 @@ public class WAVLTree {
 			return -1;
 		}
 
+		updateMinMaxOnDeletion(node.key); // needs to be done before rebalancing
 		boolean isLeftChild = node.parent != null && node.parent.leftChild == node;
 		return delete(node, isLeftChild);
 	}
@@ -306,7 +313,9 @@ public class WAVLTree {
 			res = rebalanceAfterDeletion(n);
 		}
 
-		size--;
+		this.size--;
+		this.sortedKeys = null;
+		this.sortedInfo = null;
 		return res;
 	}
 
@@ -464,6 +473,12 @@ public class WAVLTree {
 		return counter;
 	}
 
+	/**
+	 * updates the pointers of the minimum element and the maximum element
+	 * in case one of them was removed from the tree
+	 * @param k -
+	 *          the key that was deleted from the tree
+	 */
 	private void updateMinMaxOnDeletion(int k) {
 		if (this.min != null && k == this.min.key) {
 			if (NodeType.of(this.min) == NodeType.LEAF) {
@@ -525,8 +540,12 @@ public class WAVLTree {
 	 * array if the tree is empty.
 	 */
 	public int[] keysToArray() {
+		if (this.sortedKeys != null) {
+			return this.sortedKeys;
+		}
 		int[] arr = new int[this.size];
 		keysToArray(this.root, arr, 0);
+		this.sortedKeys = arr;
 		return arr;
 	}
 
@@ -549,8 +568,12 @@ public class WAVLTree {
 	 * respective keys, or an empty array if the tree is empty.
 	 */
 	public String[] infoToArray() {
+		if (this.sortedInfo != null) {
+			return this.sortedInfo;
+		}
 		String[] arr = new String[this.size];
 		infoToArray(this.root, arr, 0);
+		this.sortedInfo = arr;
 		return arr;
 	}
 
