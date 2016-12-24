@@ -68,14 +68,18 @@ public class WAVLTree {
 	private WAVLNode root;
 	private int size;
 
+	private WAVLNode min;
+	private WAVLNode max;
+	private int[] sortedKeys;
+	private String[] sortedInfo;
+
 	public WAVLTree() {
 		this.root = null;
 		this.size = 0;
 	}
 
 	/**
-	 * returns the root of the tree.
-	 * package-private. for testing purposes only
+	 * returns the root of the tree. package-private. for testing purposes only
 	 */
 	WAVLNode getRoot() {
 		return this.root;
@@ -142,6 +146,7 @@ public class WAVLTree {
 	 */
 	public int insert(int k, String i) {
 		WAVLNode newNode = new WAVLNode(k, i);
+		updateMinMaxOnInsert(newNode);
 		if (this.root == null) { // if tree is empty, add as root
 			this.setRoot(newNode);
 			this.size++;
@@ -182,9 +187,10 @@ public class WAVLTree {
 	}
 
 	/**
-	 * rebalances the tree after an insertion to maintain valid rank differences.
-	 * returns the amount of rebalancing operations needed.
-	 * algorithm is as described in course presentation using rank differences of a node.
+	 * rebalances the tree after an insertion to maintain valid rank
+	 * differences. returns the amount of rebalancing operations needed.
+	 * algorithm is as described in course presentation using rank differences
+	 * of a node.
 	 */
 	private int rebalanceAfterInsertion(WAVLNode node) {
 		if (node == null) { // reached root. tree is balanced
@@ -238,6 +244,15 @@ public class WAVLTree {
 		return counter;
 	}
 
+	private void updateMinMaxOnInsert(WAVLNode node) {
+		if (this.min == null || node.getKey() < this.min.getKey()) {
+			this.min = node;
+		}
+		if (this.max == null || node.getKey() > this.max.getKey()) {
+			this.max = node;
+		}
+	}
+
 	/**
 	 * deletes an item with key k from the binary tree, if it is there; the tree
 	 * must remain valid (keep its invariants). returns the number of
@@ -245,6 +260,8 @@ public class WAVLTree {
 	 * returns -1 if an item with key k was not found in the tree.
 	 */
 	public int delete(int k) {
+		updateMinMaxOnDeletion(k);
+
 		// we need to find the node to be deleted
 		WAVLNode node = search(k, this.root);
 		if (node == null) {
@@ -297,7 +314,8 @@ public class WAVLTree {
 	 * deletes a node that has only one child or no children at all
 	 *
 	 * @param parent       - parent of the node to be deleted
-	 * @param childOfChild - the one child of the node to be deleted, or null if the node is a leaf
+	 * @param childOfChild - the one child of the node to be deleted, or null if the node
+	 *                     is a leaf
 	 * @param isLeftChild  - should be set to true if the node to be deleted is a left
 	 *                     child of its parent
 	 */
@@ -313,8 +331,8 @@ public class WAVLTree {
 
 	/**
 	 * deletes a node that has two children by replacing it with its successor.
-	 * returns the successor's old parent,
-	 * or the successor itself if the parent is the node we deleted.
+	 * returns the successor's old parent, or the successor itself if the parent
+	 * is the node we deleted.
 	 *
 	 * @param node        - the node to be deleted
 	 * @param isLeftChild - should be set to true if the node to be deleted is a left
@@ -340,13 +358,15 @@ public class WAVLTree {
 			node.parent.setRightChild(successor);
 		}
 
-		// now we assign our successor its new children - those of the node we want to delete
+		// now we assign our successor its new children - those of the node we
+		// want to delete
 		successor.setLeftChild(node.leftChild);
-		if (successorParent != null) { // to prevent a node from being its own child
+		if (successorParent != null) { // to prevent a node from being its own
+			// child
 			successor.setRightChild(node.rightChild);
 		}
 
-		//maintain rank
+		// maintain rank
 		successor.rank = node.rank;
 
 		return successorParent != null ? successorParent : successor;
@@ -354,8 +374,8 @@ public class WAVLTree {
 
 	/**
 	 * rebalances the tree after a deletion to maintain valid rank differences.
-	 * returns the amount of rebalancing operations needed.
-	 * algorithm is as described in course presentation using rank differences of a node
+	 * returns the amount of rebalancing operations needed. algorithm is as
+	 * described in course presentation using rank differences of a node
 	 */
 	private int rebalanceAfterDeletion(WAVLNode node) {
 		if (node == null) { // reached root. tree is balanced
@@ -393,7 +413,8 @@ public class WAVLTree {
 						// case 2: rotation
 					} else if (prev == RankDiff.D1_1 || prev == RankDiff.D2_1) {
 						rotateLeft(node, true);
-						// after rotation we might have created a 2,2 leaf, check and fix
+						// after rotation we might have created a 2,2 leaf, check
+						// and fix
 						if (RankDiff.of(node) == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
 							node.rank--;
 						}
@@ -420,14 +441,15 @@ public class WAVLTree {
 						// case 2: rotation
 					} else if (prev == RankDiff.D1_1 || prev == RankDiff.D1_2) {
 						rotateRight(node, true);
-						// after rotation we might have created a 2,2 leaf, check and fix
+						// after rotation we might have created a 2,2 leaf, check
+						// and fix
 						if (RankDiff.of(node) == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
 							node.rank--;
 						}
 						counter++;
 						return counter;
 
-						//case 3: double rotation
+						// case 3: double rotation
 					} else {
 						doubleRotateLeftRight(node, true);
 						counter += 2;
@@ -442,17 +464,33 @@ public class WAVLTree {
 		return counter;
 	}
 
+	private void updateMinMaxOnDeletion(int k) {
+		if (this.min != null && k == this.min.key) {
+			if (NodeType.of(this.min) == NodeType.LEAF) {
+				this.min = this.min.parent;
+			} else {
+				this.min = this.min.getRightChild();
+			}
+		}
+		if (this.max != null && k == this.max.key) {
+			if (NodeType.of(this.max) == NodeType.LEAF) {
+				this.max = this.max.parent;
+			} else {
+				this.max = this.max.getLeftChild();
+			}
+		}
+	}
+
 	/**
-	 * Returns the info of the item with the smallest key in the tree,
-	 * or null if the tree is empty
+	 * Returns the info of the item with the smallest key in the tree, or null
+	 * if the tree is empty
 	 */
 	public String min() {
-		WAVLNode node = min(this.root);
-		if (node == null) {
+		if (this.min == null) {
 			return null;
 		}
 
-		return node.info;
+		return this.min.info;
 	}
 
 	/**
@@ -471,19 +509,15 @@ public class WAVLTree {
 	}
 
 	/**
-	 * Returns the info of the item with the largest key in the tree,
-	 * or null if the tree is empty
+	 * Returns the info of the item with the largest key in the tree, or null if
+	 * the tree is empty
 	 */
 	public String max() {
-		if (this.root == null) {
+		if (this.max == null) {
 			return null;
 		}
 
-		WAVLNode currentNode = this.root;
-		while (currentNode.rightChild != null) {
-			currentNode = currentNode.rightChild;
-		}
-		return currentNode.info;
+		return this.max.info;
 	}
 
 	/**
@@ -555,11 +589,13 @@ public class WAVLTree {
 	 * rotates a node to the right.
 	 *
 	 * @param node          - node to be rotated
-	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
-	 *                      rotation after insertion requires different rank maintaining than after deletion.
+	 * @param afterDeletion - should be set to true only if the rotation is done after a
+	 *                      delete operation. rotation after insertion requires different
+	 *                      rank maintaining than after deletion.
 	 */
 	private void rotateRight(WAVLNode node, boolean afterDeletion) {
-		WAVLNode oldParent = node.parent; // need to save it now before it changes
+		WAVLNode oldParent = node.parent; // need to save it now before it
+		// changes
 		boolean isLeftChild = oldParent != null && oldParent.leftChild == node;
 
 		// make the rotation
@@ -574,11 +610,13 @@ public class WAVLTree {
 	 * rotates a node to the left.
 	 *
 	 * @param node          - node to be rotated
-	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
-	 *                      rotation after insertion requires different rank maintaining than after deletion.
+	 * @param afterDeletion - should be set to true only if the rotation is done after a
+	 *                      delete operation. rotation after insertion requires different
+	 *                      rank maintaining than after deletion.
 	 */
 	private void rotateLeft(WAVLNode node, boolean afterDeletion) {
-		WAVLNode oldParent = node.parent; // need to save it now before it changes
+		WAVLNode oldParent = node.parent; // need to save it now before it
+		// changes
 		boolean isLeftChild = oldParent != null && oldParent.leftChild == node;
 
 		// make the rotation
@@ -590,17 +628,21 @@ public class WAVLTree {
 	}
 
 	/**
-	 * finishes a rotation operation by connecting the rotated sub-tree to the tree,
-	 * and by promoting or demoting ranks in order to maintain the rank rule
+	 * finishes a rotation operation by connecting the rotated sub-tree to the
+	 * tree, and by promoting or demoting ranks in order to maintain the rank
+	 * rule
 	 *
 	 * @param node          - the (previously) parent node that was rotated
 	 * @param k             - the (previously) child node that was rotated
 	 * @param oldParent     - the old parent of @param node
-	 * @param isLeftChild   - should be set to true if @param node was a left child of its parent
-	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
-	 *                      rotation after insertion requires different rank maintaining than after deletion.
+	 * @param isLeftChild   - should be set to true if @param node was a left child of its
+	 *                      parent
+	 * @param afterDeletion - should be set to true only if the rotation is done after a
+	 *                      delete operation. rotation after insertion requires different
+	 *                      rank maintaining than after deletion.
 	 */
-	private void finishRotation(WAVLNode node, WAVLNode k, WAVLNode oldParent, boolean isLeftChild, boolean afterDeletion) {
+	private void finishRotation(WAVLNode node, WAVLNode k, WAVLNode oldParent, boolean isLeftChild,
+								boolean afterDeletion) {
 		// connect the rotated sub-tree to the tree
 		if (oldParent != null) {
 			if (isLeftChild) {
@@ -620,13 +662,13 @@ public class WAVLTree {
 	}
 
 	/**
-	 * makes a double rotation.
-	 * first, a rotation to the left of the left child,
+	 * makes a double rotation. first, a rotation to the left of the left child,
 	 * then, a rotation to the right of the given node
 	 *
 	 * @param node          - node to be double rotated
-	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
-	 *                      rotation after insertion requires different rank maintaining than after deletion.
+	 * @param afterDeletion - should be set to true only if the rotation is done after a
+	 *                      delete operation. rotation after insertion requires different
+	 *                      rank maintaining than after deletion.
 	 */
 	private void doubleRotateLeftRight(WAVLNode node, boolean afterDeletion) {
 		rotateLeft(node.leftChild, afterDeletion);
@@ -640,13 +682,13 @@ public class WAVLTree {
 	}
 
 	/**
-	 * makes a double rotation.
-	 * first, a rotation to the right of the right child,
-	 * then, a rotation to the left of the given node
+	 * makes a double rotation. first, a rotation to the right of the right
+	 * child, then, a rotation to the left of the given node
 	 *
 	 * @param node          - node to be double rotated
-	 * @param afterDeletion - should be set to true only if the rotation is done after a delete operation.
-	 *                      rotation after insertion requires different rank maintaining than after deletion.
+	 * @param afterDeletion - should be set to true only if the rotation is done after a
+	 *                      delete operation. rotation after insertion requires different
+	 *                      rank maintaining than after deletion.
 	 */
 	private void doubleRotateRightLeft(WAVLNode node, boolean afterDeletion) {
 		rotateRight(node.rightChild, afterDeletion);
@@ -702,9 +744,9 @@ public class WAVLTree {
 		}
 
 		/*
-			important: use ONLY the next functions to set children.
-			these functions also maintain parents of nodes.
-			setting rightChild or leftChild directly will cause serious stability issues
+		 * important: use ONLY the next functions to set children. these
+		 * functions also maintain parents of nodes. setting rightChild or
+		 * leftChild directly will cause serious stability issues
 		 */
 
 		private void setRightChild(WAVLNode rightChild) {
