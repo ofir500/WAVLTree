@@ -637,8 +637,7 @@ public class WAVLTree {
 	 *                      rank maintaining than after deletion.
 	 */
 	private void rotateLeft(WAVLNode node, boolean afterDeletion) {
-		WAVLNode oldParent = node.parent; // need to save it now before it
-		// changes
+		WAVLNode oldParent = node.parent; // need to save it now before it changes
 		boolean isLeftChild = oldParent != null && oldParent.leftChild == node;
 
 		// make the rotation
