@@ -1,7 +1,4 @@
 /**
- * Created by:
- * 				Ilor Ifrah 205828478  username:
- * 				Ofir Feffer 203565833 username: ofirfeffer
  *
  * WAVLTree
  * <p>
