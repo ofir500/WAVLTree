@@ -1,6 +1,6 @@
 /**
  * Created by:
- * 				Ilor Ifrah 205828478  username: 
+ * 				Ilor Ifrah 205828478  username:
  * 				Ofir Feffer 203565833 username: ofirfeffer
  *
  * WAVLTree
@@ -424,8 +424,7 @@ public class WAVLTree {
 						// case 2: rotation
 					} else if (prev == RankDiff.D1_1 || prev == RankDiff.D2_1) {
 						rotateLeft(node, true);
-						// after rotation we might have created a 2,2 leaf, check
-						// and fix
+						// after rotation we might have created a 2,2 leaf, check and fix
 						if (RankDiff.of(node) == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
 							node.rank--;
 						}
@@ -452,8 +451,7 @@ public class WAVLTree {
 						// case 2: rotation
 					} else if (prev == RankDiff.D1_1 || prev == RankDiff.D1_2) {
 						rotateRight(node, true);
-						// after rotation we might have created a 2,2 leaf, check
-						// and fix
+						// after rotation we might have created a 2,2 leaf, check and fix
 						if (RankDiff.of(node) == RankDiff.D2_2 && NodeType.of(node) == NodeType.LEAF) {
 							node.rank--;
 						}
