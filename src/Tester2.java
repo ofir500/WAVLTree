@@ -2,8 +2,8 @@ import java.util.*;
 
 public class Tester2 {
 
-	static List<Integer> keysInTree = new ArrayList<>();
-	static TreeSet<Integer> javaTree = new TreeSet<>();
+	private static List<Integer> keysInTree = new ArrayList<>();
+	private static TreeSet<Integer> javaTree = new TreeSet<>();
 
 	private static int height(WAVLTree.WAVLNode node) {
 		if (node == null) {
@@ -22,7 +22,6 @@ public class Tester2 {
 	private static void insertNonRandomElements(WAVLTree tree, int numOfElements) {
 		System.out.println("Inserting " + numOfElements + " elements");
 		for (int i = 1; i <= numOfElements; i++) {
-			;
 			tree.insert(i, String.valueOf(i));
 			keysInTree.add(i);
 		}
