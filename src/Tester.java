@@ -268,7 +268,7 @@ public class Tester {
         while (node != null) {
             int leftDiff = node.getLeftChild() != null ? node.getRank() - node.getLeftChild().getRank() : node.getRank() + 1;
             int rightDiff = node.getRightChild() != null ? node.getRank() - node.getRightChild().getRank() : node.getRank() + 1;
-            if ((rightDiff != 1 && rightDiff != 2) && (leftDiff != 1 && leftDiff != 2)) {
+            if ((rightDiff != 1 && rightDiff != 2) || (leftDiff != 1 && leftDiff != 2)) {
                 return false;
             }
             node = node.getParent();
