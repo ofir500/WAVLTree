@@ -674,7 +674,7 @@ public class WAVLTree {
 
 		// maintain ranks
 		node.rank--;
-		if (afterDeletion) {
+		if (afterDeletion) { 
 			k.rank++;
 		}
 	}
